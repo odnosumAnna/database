@@ -1,0 +1,23 @@
+Model Inconsistencies:
+ 
+Diagram A0:  УПРАВЛІННЯ ДАІ
+      Activity "Облік нових ДТП" has no Control
+      Activity "Генерація звітів" has no Control
+    has 6 unresolved (square tunneled) arrow connections:
+        Border Sink: Unnamed Arrow
+        Border Source: Unnamed Arrow
+        Border Sink: Unnamed Arrow
+        Border Sink: Unnamed Arrow
+        Border Sink: Unnamed Arrow
+        Border Sink: Unnamed Arrow
+    has 1 unconnected border arrow
+    has 10 unnamed arrows
+ 
+Diagram A-0:  УПРАВЛІННЯ ДАІ
+    has 6 unresolved (square tunneled) arrow connections:
+        Source: Звіт про ДТП з вини пішоходів
+        Source: Міісце найбільшої кількості ДТП
+        Source: Звіт про ДТП, на які виїжджали міліціонери
+        Source: Список водіїв, які брали участь у декількох ДТП
+        Sink: Інформація про міліціонерів
+        Source: Список постраждалих у ДТП

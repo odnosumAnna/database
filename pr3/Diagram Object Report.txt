@@ -1,0 +1,64 @@
+
+Activity Name: УПРАВЛІННЯ ДАІ
+Activity Number: 0
+Activity Status: WORKING
+Input Name: Відомість про нову ДТП
+Control Name: Закони та правила дррожнього руху
+Output Name: Звіт про ДТП з вини пішоходів
+Mechanism Name: База даних ДТП
+
+Input Name: Вдомості про учасників ДТП
+Control Name: Регламент обробки даних
+Output Name: Міісце найбільшої кількості ДТП
+Mechanism Name: Програмне забезпечення для обробки запитів
+
+Input Name: Інформація про міліціонерів
+Control Name: Нормативно-правовий архів документів ДАІ
+Output Name: Звіт про ДТП, на які виїжджали міліціонери
+
+Input Name: Вид ДТП
+Output Name: Список водіїв, які брали участь у декількох ДТП
+
+Output Name: Список постраждалих у ДТП
+
+Activity Name: Облік нових ДТП
+Activity Number:   1
+Activity Status: WORKING
+Input Name: Відомість про нову ДТП
+Output Name: Untitled Output 12
+
+Activity Name: Аналіз ДТП
+Activity Number:   2
+Activity Status: WORKING
+Input Name: Untitled Input 12
+Control Name: Регламент обробки даних
+Output Name: Untitled Output 14
+Mechanism Name: Вид ДТП
+
+Input Name: Вдомості про учасників ДТП
+Mechanism Name: Програмне забезпечення для обробки запитів
+
+Input Name: Untitled Input 6
+
+Activity Name: Вилучення  застарілих даних
+Activity Number:   3
+Activity Status: WORKING
+Input Name: Untitled Input 14
+Control Name: Нормативно-правовий архів документів ДАІ
+Output Name: Untitled Output 11
+Call Arrow Name: Untitled Call Arrow 10
+
+Activity Name: Генерація звітів
+Activity Number:   4
+Activity Status: WORKING
+Input Name: Untitled Input 11
+Output Name: Untitled Output 16
+Mechanism Name: База даних ДТП
+
+Output Name: Untitled Output 18
+
+Output Name: Untitled Output 15
+
+Output Name: Untitled Output 17
+
+Output Name: Untitled Output 4

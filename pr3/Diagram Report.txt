@@ -1,0 +1,54 @@
+Report for Diagram: A0, УПРАВЛІННЯ ДАІ
+
+
+Activity Name: Облік нових ДТП
+Activity Status: WORKING
+Activity Author: Анна Односум
+Activity Number: A1
+
+Activity Name: Аналіз ДТП
+Activity Status: WORKING
+Activity Author: Анна Односум
+Activity Number: A2
+
+Activity Name: Вилучення  застарілих даних
+Activity Status: WORKING
+Activity Author: Анна Односум
+Activity Number: A3
+
+Activity Name: Генерація звітів
+Activity Status: WORKING
+Activity Author: Анна Односум
+Activity Number: A4
+
+Link Name: База даних ДТП
+Link Status: WORKING
+Link Author: Анна Односум
+
+Link Name: Закони та правила дррожнього руху
+Link Status: WORKING
+Link Author: Анна Односум
+
+Link Name: Програмне забезпечення для обробки запитів
+Link Status: WORKING
+Link Author: Анна Односум
+
+Link Name: Регламент обробки даних
+Link Status: WORKING
+Link Author: Анна Односум
+
+Link Name: Відомість про нову ДТП
+Link Status: WORKING
+Link Author: Анна Односум
+
+Link Name: Вдомості про учасників ДТП
+Link Status: WORKING
+Link Author: Анна Односум
+
+Link Name: Нормативно-правовий архів документів ДАІ
+Link Status: WORKING
+Link Author: Анна Односум
+
+Link Name: Вид ДТП
+Link Status: WORKING
+Link Author: Анна Односум

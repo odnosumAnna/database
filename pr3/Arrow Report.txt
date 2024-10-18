@@ -1,0 +1,42 @@
+
+Arrow Name: База даних ДТП
+Arrow Status: WORKING
+
+Arrow Name: Вдомості про учасників ДТП
+Arrow Status: WORKING
+
+Arrow Name: Вид ДТП
+Arrow Status: WORKING
+
+Arrow Name: Відомість про нову ДТП
+Arrow Status: WORKING
+
+Arrow Name: Закони та правила дррожнього руху
+Arrow Status: WORKING
+
+Arrow Name: Звіт про ДТП з вини пішоходів
+Arrow Status: WORKING
+
+Arrow Name: Звіт про ДТП, на які виїжджали міліціонери
+Arrow Status: WORKING
+
+Arrow Name: Інформація про міліціонерів
+Arrow Status: WORKING
+
+Arrow Name: Міісце найбільшої кількості ДТП
+Arrow Status: WORKING
+
+Arrow Name: Нормативно-правовий архів документів ДАІ
+Arrow Status: WORKING
+
+Arrow Name: Програмне забезпечення для обробки запитів
+Arrow Status: WORKING
+
+Arrow Name: Регламент обробки даних
+Arrow Status: WORKING
+
+Arrow Name: Список водіїв, які брали участь у декількох ДТП
+Arrow Status: WORKING
+
+Arrow Name: Список постраждалих у ДТП
+Arrow Status: WORKING
