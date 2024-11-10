@@ -6,6 +6,5 @@
 Висновки:
 В ході виконання лабораторної роботи я ознайомилась з методологією створення функціональних моделей інформаційних систем. В практичній частині я створила функціональну модель ІС "Управління ДАІ" з використанням методології DFD та IDEF3. При побудові контекстної діаграми та її декомпозиції я використала знання, отримані під час виконання попередніх практичних робіт.
 
-![image](https://github.com/user-attachments/assets/a23b591e-f1a7-4f98-830a-e796ee3ec3a3)
-![image](https://github.com/user-attachments/assets/322d55cd-a766-4260-90a5-e6531c216a42)
-![image](https://github.com/user-attachments/assets/4eb5f3d3-841c-4ee9-bd06-f26ad147d5a0)
+![image](https://github.com/user-attachments/assets/d53c733b-b468-4ffc-aa9d-ed654b7bb98d)
+
