@@ -23,7 +23,8 @@
 
 ![image](https://github.com/user-attachments/assets/f28b2ca6-c263-4cf1-8a6b-23382d8fbcb9)
 
-Створення БД з назвою DAI: 
+        Створення БД з назвою DAI: 
+
 ![image](https://github.com/user-attachments/assets/5e722150-7f01-4f7b-8b7c-c17634b3b733)
 
 
