@@ -49,10 +49,20 @@
 ![image](https://github.com/user-attachments/assets/7fef6939-023b-4d04-bbd6-6684da0d1c5e)
 
 ![image](https://github.com/user-attachments/assets/86ddfbfc-a19e-4ced-b09a-ed421efc44e6)
+![image](https://github.com/user-attachments/assets/70ea8e27-ade1-4a01-aac0-a090671a65a0)
+            Рисунок -  SETUP.SQL(створення таблиць).
+            
+                ![image](https://github.com/user-attachments/assets/b27f1ab1-7e8a-44dd-adf7-531668ec5abd)
+                 Рисунок  - додавання даних в таблиці.
+                 
 
-                                 
-
-
-
+![image](https://github.com/user-attachments/assets/1d35f04f-dd1f-4a04-9c89-bcc6dd8423e1)
+                    Рисунок  – оновлення даних в таблиці.
+                    
+![image](https://github.com/user-attachments/assets/3d3d87f8-10b8-4036-a09b-7fd43724b795)
+                    Рисунок  –запити відносно завдання.
+             ![image](https://github.com/user-attachments/assets/cf75395b-9748-496f-84ed-e1c15f586889)
+       Рисунок – видалення даних в таблиці.
+       
 Висновки: 
 У ході виконання роботи я досягла поставленої мети: навчилася створювати, змінювати та видаляти таблиці в базі даних. Окрім цього, я отримала практичні навички додавання, оновлення та видалення інформації в цих таблицях. Також опанувала створення найпростіших запитів до бази даних, що є важливим кроком у розумінні роботи з системами управління базами даних.
