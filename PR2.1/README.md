@@ -20,11 +20,13 @@
         •	Видалити відомості про ДТП, які сталися раніше вказаної дати.
 
                             
-Логічна модель ![image](https://github.com/user-attachments/assets/f28b2ca6-c263-4cf1-8a6b-23382d8fbcb9)
+Логічна модель
+![image](https://github.com/user-attachments/assets/f28b2ca6-c263-4cf1-8a6b-23382d8fbcb9)
 
                             Рисунок – Логічна модель
 
-Фізична модель![image](https://github.com/user-attachments/assets/96d46b57-0b9a-4983-97ca-c6d99bad622c)
+Фізична модель
+![image](https://github.com/user-attachments/assets/96d46b57-0b9a-4983-97ca-c6d99bad622c)
 
                               Рисунок  – Фізична модель.
 
