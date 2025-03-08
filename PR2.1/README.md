@@ -50,9 +50,11 @@
 
 ![image](https://github.com/user-attachments/assets/86ddfbfc-a19e-4ced-b09a-ed421efc44e6)
 ![image](https://github.com/user-attachments/assets/70ea8e27-ade1-4a01-aac0-a090671a65a0)
+           
             Рисунок -  SETUP.SQL(створення таблиць).
             
-                ![image](https://github.com/user-attachments/assets/b27f1ab1-7e8a-44dd-adf7-531668ec5abd)
+               ![image](https://github.com/user-attachments/assets/69b3a60e-aee7-4b36-aa32-c42c45f34bff)
+               
                  Рисунок  - додавання даних в таблиці.
                  
 
