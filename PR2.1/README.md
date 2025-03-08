@@ -24,7 +24,7 @@
 
                             Рисунок – Логічна модель
 
-Фізична модель  ![image](https://github.com/user-attachments/assets/96d46b57-0b9a-4983-97ca-c6d99bad622c)
+Фізична модель![image](https://github.com/user-attachments/assets/96d46b57-0b9a-4983-97ca-c6d99bad622c)
 
                               Рисунок  – Фізична модель.
 
