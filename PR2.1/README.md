@@ -19,11 +19,11 @@
         •	Внести відомості про нову ДТП;
         •	Видалити відомості про ДТП, які сталися раніше вказаної дати.
 
-Рисунок 1– Логічна модель
+        Рисунок 1– Логічна модель
 
 ![image](https://github.com/user-attachments/assets/f28b2ca6-c263-4cf1-8a6b-23382d8fbcb9)
 
-        Створення БД з назвою DAI: 
+          Створення БД з назвою DAI: 
 
 ![image](https://github.com/user-attachments/assets/5e722150-7f01-4f7b-8b7c-c17634b3b733)
 
@@ -50,18 +50,21 @@
 
 ![image](https://github.com/user-attachments/assets/86ddfbfc-a19e-4ced-b09a-ed421efc44e6)
 ![image](https://github.com/user-attachments/assets/70ea8e27-ade1-4a01-aac0-a090671a65a0)
-            Рисунок -  SETUP.SQL(створення таблиць).
+                 
+                  Рисунок -  SETUP.SQL(створення таблиць).
 
 ![image](https://github.com/user-attachments/assets/c1294bd9-1da4-4d1a-af17-a6518739882d)
 
-Рисунок  - додавання даних в таблиці.
+                    Рисунок  - додавання даних в таблиці.
 
 ![image](https://github.com/user-attachments/assets/1d35f04f-dd1f-4a04-9c89-bcc6dd8423e1)
                     Рисунок  – оновлення даних в таблиці.
                     
 ![image](https://github.com/user-attachments/assets/3d3d87f8-10b8-4036-a09b-7fd43724b795)
+                   
                     Рисунок  –запити відносно завдання.
-             ![image](https://github.com/user-attachments/assets/cf75395b-9748-496f-84ed-e1c15f586889)
+![image](https://github.com/user-attachments/assets/cf75395b-9748-496f-84ed-e1c15f586889)
+      
        Рисунок – видалення даних в таблиці.
        
 Висновки: 
