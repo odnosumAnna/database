@@ -46,8 +46,6 @@
 
 ![image](https://github.com/user-attachments/assets/7fef6939-023b-4d04-bbd6-6684da0d1c5e)
 
-![image](https://github.com/user-attachments/assets/86ddfbfc-a19e-4ced-b09a-ed421efc44e6)
-
 
 Завдання 2:
  ![image](https://github.com/user-attachments/assets/ede721a9-0b3b-4876-b804-b98cf12a5be5)
