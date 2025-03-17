@@ -67,7 +67,10 @@ SELECT * FROM Accident WHERE Date = '2025-01-01';
 
 -- Виведення ДТП з відкритим статусом розслідування
 SELECT * FROM Accident WHERE Investigation_Status = 'Open'; 
+![image](https://github.com/user-attachments/assets/d4777574-383b-453d-ba7d-39da2dab3c0f)
+
 Рисунок 8 – результат завдання 4.
+
 Завдання 5: Використання логічних операторів у WHERE
 - ДТП з більш ніж двома постраждалими, якщо розслідування ще не закрито
 SELECT * FROM Accident WHERE Victim_Count > 2 AND Investigation_Status = 'Open';
@@ -83,8 +86,10 @@ SELECT * FROM Accident WHERE NOT Victim_Count > 0;
 
 -- ДТП, що сталися у визначений період
 SELECT * FROM Accident WHERE Date BETWEEN '2025-01-01' AND '2025-03-01';
- 
+ ![image](https://github.com/user-attachments/assets/0079697a-0237-40a9-84fd-b52917cb6669)
+
 Рисунок 9 – результат завдання 5.
+
 Завдання  6: Використання оператора LIKE
 -- ДТП, що сталися на вулицях, які закінчуються на "Street" або "St"
 SELECT * FROM Accident WHERE Location LIKE '% Street' OR Location LIKE '% St';
@@ -100,7 +105,8 @@ SELECT * FROM Accident WHERE Accident_Type LIKE 'C%';
 
 -- ДТП у певному місті з точністю до літери
 SELECT * FROM Accident WHERE Location LIKE '_yiv';
- 
+ ![image](https://github.com/user-attachments/assets/32a5f868-0b2e-4b67-a043-c612adb42a4b)
+
 Рисунок 10 – результат завдання 6.
 
 Завдання 7:Використання INNER JOIN
@@ -129,8 +135,10 @@ INNER JOIN Policeman P ON A.ID_Accident = P.ID_Accident;
 SELECT A.*, P.LastName AS Pedestrian_LastName
 FROM Accident A
 INNER JOIN Pedestrian P ON A.ID_Accident = P.ID_Accident;
- 
+ ![image](https://github.com/user-attachments/assets/fe1f85d3-5700-485c-a2b5-ec5ec74d75e6)
+
 Рисунок 11 – результат завдання 7.
+
 Завдання 8: Використання LEFT JOIN
 -- ДТП та можливі жертви (якщо немає — NULL)
 SELECT A.*, COALESCE(V.LastName, 'No Victim') AS Victim_LastName 
@@ -157,8 +165,10 @@ LEFT JOIN Pedestrian P ON A.ID_Accident = P.ID_Accident;
 SELECT A.*, COALESCE(V.License_Plate, 'No Vehicle') AS License_Plate
 FROM Accident A
 LEFT JOIN Vehicle V ON A.ID_Accident = V.ID_Accident;
- 
+ ![image](https://github.com/user-attachments/assets/6dfc75cf-e3a4-4509-a8be-1a1e25ce37d6)
+
 Рисунок 12 – результат завдання 8.
+
 Завдання 9: Використання вкладеного запиту (SUBQUERY)
 -- ДТП, у яких є хоча б один потерпілий із тяжкими травмами
 SELECT * FROM Accident 
@@ -185,8 +195,10 @@ WHERE ID_Accident IN (
 -- ДТП з найбільшою кількістю постраждалих
 SELECT * FROM Accident 
 WHERE Victim_Count = (SELECT MAX(Victim_Count) FROM Accident);
- 
+ ![image](https://github.com/user-attachments/assets/b0c19e17-ac14-4298-ab04-91bce2712a67)
+
 Рисунок 13 – результат завдання 9.
+
 Завдання 10: Використання GROUP BY та HAVING
 -- Підрахунок кількості ДТП за типом, якщо більше 1, з урахуванням пішоходів
 SELECT A.Accident_Type, COUNT(*) AS Total_Accidents
@@ -224,8 +236,10 @@ FROM Accident A
 JOIN Vehicle V ON A.ID_Accident = V.ID_Accident
 GROUP BY A.ID_Accident
 HAVING COUNT(V.ID_Vehicle) > 2;
- 
+ ![image](https://github.com/user-attachments/assets/622af759-ed60-44ba-8cc7-6240fcfe1aec)
+
 Рисунок 14 – результат завдання 10.
+
 Завдання 11: Складний багатотабличний JOIN
 
 -- 1. Виведення всіх ДТП разом з кількістю залучених транспортних засобів
@@ -264,8 +278,10 @@ SELECT
 FROM Accident A
 JOIN Policeman P ON A.ID_Accident = P.ID_Accident
 WHERE P.Rank = 'Captain';
- 
+ ![image](https://github.com/user-attachments/assets/171d8dff-9e28-42be-a877-019c6c44b918)
+
 Рисунок 15 – результат завдання 11.
+
 Завдання 12: WHERE у поєднанні з JOIN
 -- 1. Виведення всіх відкритих ДТП разом з іменами постраждалих
 SELECT A.*, V.LastName AS Victim_LastName, V.FirstName AS Victim_FirstName
@@ -295,8 +311,10 @@ FROM Driver D
 JOIN Driver_Involvement DI ON D.ID_Driver = DI.ID_Driver
 JOIN Accident A ON DI.ID_Accident = A.ID_Accident
 WHERE A.Victim_Count > 3;
- 
+ ![image](https://github.com/user-attachments/assets/0c9787ac-4ba0-440b-aca9-fd042d0cc990)
+
 Рисунок 16 – результат завдання 12.
+
 Завдання 14. запити за варіантом відповідно до опису предметної області основного варіанта
 -- 1. Вивід ДТП з вини пішоходів за період
 DECLARE @StartDate DATE = '2024-01-01', @EndDate DATE = '2024-12-31';
@@ -344,7 +362,8 @@ VALUES (@Date, @Time, @Location, @Victim_Count, @Accident_Type, @Investigation_S
 DECLARE @DeleteDate DATE = '2023-01-01';
 DELETE FROM Accident
 WHERE Date < @DeleteDate;
- 
+ ![image](https://github.com/user-attachments/assets/c1b4cab3-a2f7-4e0b-b558-071da67239ba)
+
 Рисунок 17 – результат завдання 14.
 
 Висновки: 
