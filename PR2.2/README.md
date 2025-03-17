@@ -54,16 +54,15 @@
 ![image](https://github.com/user-attachments/assets/6cbbbacc-459c-4d75-af80-4e3493b5faf2)
 ![image](https://github.com/user-attachments/assets/58157818-dc36-4412-82e2-79c4fa4d3a5f)
 
-Рисунок 3-7 –успішне додавання по 100 записів у таблиці.
+                      Рисунок 3-7 –успішне додавання по 100 записів у таблиці.
 
 Завдання 3: Використання оператора WHERE
-
 Виведення всіх ДТП, у яких постраждало більше двох осіб:
 SELECT * FROM Accident WHERE Victim_Count > 2;
 
  ![image](https://github.com/user-attachments/assets/74a0417b-965c-4ae1-b016-c273636d2067)
  
-Рисунок 8 – результат завдання 3.
+                     Рисунок 8 – результат завдання 3.
 
 Завдання 4: Використання логічних операторів у WHERE
 
@@ -74,7 +73,7 @@ AND Investigation_Status = 'Open';
 
  ![image](https://github.com/user-attachments/assets/518beb23-defe-4b3c-bc23-9fce3ed3e063)
  
-Рисунок 9 – результат завдання 4.
+                     Рисунок 9 – результат завдання 4.
 
 Завдання  5: Використання оператора LIKE
 
@@ -85,7 +84,7 @@ OR Location LIKE '% St';
 
 ![image](https://github.com/user-attachments/assets/08210964-67ae-455b-ab4f-9069d404a27b)
 
-Рисунок 10 – результат завдання 5.
+                     Рисунок 10 – результат завдання 5.
 
 Завдання 6:Використання INNER JOIN
 
@@ -96,7 +95,7 @@ INNER JOIN Victim V ON A.ID_Accident = V.ID_Accident;
 
 ![image](https://github.com/user-attachments/assets/9b01e87a-5dd9-4aaa-80ab-e559f6d33156)
 
-Рисунок 11 – результат завдання 6.
+                     Рисунок 11 – результат завдання 6.
 
 Завдання 7: Використання LEFT JOIN
 
@@ -109,7 +108,7 @@ LEFT JOIN Victim V ON A.ID_Accident = V.ID_Accident;
 
 ![image](https://github.com/user-attachments/assets/c8923499-35d1-4284-a342-b65b3e12587f)
 
-Рисунок 12 – результат завдання 7.
+                     Рисунок 12 – результат завдання 7.
 
 Завдання 8: Використання вкладеного запиту (SUBQUERY)
 
@@ -123,7 +122,7 @@ WHERE EXISTS (
     AND Victim.Severity = 'Severe');
     
  ![image](https://github.com/user-attachments/assets/566a999f-d373-4022-a4d8-7cea5572c613)
-Рисунок 13 – результат завдання 8.
+                     Рисунок 13 – результат завдання 8.
 
 Завдання 9: Використання GROUP BY та HAVING
 
@@ -134,7 +133,7 @@ GROUP BY Accident_Type
 HAVING COUNT(*) > 1;
  ![image](https://github.com/user-attachments/assets/e9a0d7b2-063b-49ac-a3da-bddca639d689)
  
-Рисунок 14 – результат завдання 9.
+                     Рисунок 14 – результат завдання 9.
 
 Завдання 10: Складний багатотабличний JOIN
 
@@ -152,7 +151,7 @@ WHERE A.Victim_Count > 1;
 
  ![image](https://github.com/user-attachments/assets/4b8f0f60-6c44-4f6f-b84b-e796c6b5f7ee)
  
-Рисунок 15 – результат завдання 10.
+                     Рисунок 15 – результат завдання 10.
 
 Завдання 11: WHERE у поєднанні з JOIN
 
@@ -166,7 +165,7 @@ WHERE A.Investigation_Status = 'Open';
 
  ![image](https://github.com/user-attachments/assets/5f6a1f18-144b-43b7-bb97-3ea1d0517a4e)
  
-Рисунок 16 – результат завдання 11.
+                     Рисунок 16 – результат завдання 11.
                               
 Висновки: 
 У ході виконання роботи я навчилася формувати запити до бази даних із використанням умови WHERE, що дозволяє здійснювати селекцію даних за заданими критеріями. Освоїла застосування логічних операторів AND, OR, NOT для побудови складних умов фільтрації.
