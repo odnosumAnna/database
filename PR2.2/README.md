@@ -42,10 +42,6 @@
 13.	Один водій може керувати тільки одним транспортним засобом в момент ДТП.
 14.	Максимальна довжина ПІБ учасників - 50 символів для кожного компонента.
 
-![image](https://github.com/user-attachments/assets/0e9477f5-6059-49af-baa0-298eb00f04e3)
-
-![image](https://github.com/user-attachments/assets/7fef6939-023b-4d04-bbd6-6684da0d1c5e)
-
 
 Завдання 2:
  ![image](https://github.com/user-attachments/assets/ede721a9-0b3b-4876-b804-b98cf12a5be5)
