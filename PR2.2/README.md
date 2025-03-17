@@ -55,12 +55,14 @@
 ![image](https://github.com/user-attachments/assets/939a9c65-ea86-48f7-a4ea-b14485005f9f)
 ![image](https://github.com/user-attachments/assets/6cbbbacc-459c-4d75-af80-4e3493b5faf2)
 ![image](https://github.com/user-attachments/assets/58157818-dc36-4412-82e2-79c4fa4d3a5f)
+
 Рисунок 3-7 –успішне додавання по 100 записів у таблиці.
 
 Завдання 3: Використання оператора WHERE
 Виведення всіх ДТП, у яких постраждало більше двох осіб:
 SELECT * FROM Accident WHERE Victim_Count > 2;
  ![image](https://github.com/user-attachments/assets/74a0417b-965c-4ae1-b016-c273636d2067)
+ 
 Рисунок 8 – результат завдання 3.
 
 Завдання 4: Використання логічних операторів у WHERE
@@ -69,6 +71,7 @@ SELECT * FROM Accident
 WHERE Victim_Count > 2 
 AND Investigation_Status = 'Open';
  ![image](https://github.com/user-attachments/assets/518beb23-defe-4b3c-bc23-9fce3ed3e063)
+ 
 Рисунок 9 – результат завдання 4.
 
 Завдання  5: Використання оператора LIKE
@@ -77,6 +80,7 @@ SELECT * FROM Accident
 WHERE Location LIKE '% Street' 
 OR Location LIKE '% St';
 ![image](https://github.com/user-attachments/assets/08210964-67ae-455b-ab4f-9069d404a27b)
+
 Рисунок 10 – результат завдання 5.
 
 Завдання 6:Використання INNER JOIN
@@ -85,6 +89,7 @@ SELECT A.*, V.LastName AS Victim_LastName, V.FirstName AS Victim_FirstName
 FROM Accident A
 INNER JOIN Victim V ON A.ID_Accident = V.ID_Accident;
 ![image](https://github.com/user-attachments/assets/9b01e87a-5dd9-4aaa-80ab-e559f6d33156)
+
 Рисунок 11 – результат завдання 6.
 
 Завдання 7: Використання LEFT JOIN
@@ -95,6 +100,7 @@ SELECT A.*,
 FROM Accident A
 LEFT JOIN Victim V ON A.ID_Accident = V.ID_Accident; 
 ![image](https://github.com/user-attachments/assets/c8923499-35d1-4284-a342-b65b3e12587f)
+
 Рисунок 12 – результат завдання 7.
 
 Завдання 8: Використання вкладеного запиту (SUBQUERY)
@@ -116,6 +122,7 @@ FROM Accident
 GROUP BY Accident_Type 
 HAVING COUNT(*) > 1;
  ![image](https://github.com/user-attachments/assets/e9a0d7b2-063b-49ac-a3da-bddca639d689)
+ 
 Рисунок 14 – результат завдання 9.
 
 Завдання 10: Складний багатотабличний JOIN
@@ -131,6 +138,7 @@ JOIN Driver_Involvement DI ON A.ID_Accident = DI.ID_Accident
 JOIN Driver D ON DI.ID_Driver = D.ID_Driver
 WHERE A.Victim_Count > 1;
  ![image](https://github.com/user-attachments/assets/4b8f0f60-6c44-4f6f-b84b-e796c6b5f7ee)
+ 
 Рисунок 15 – результат завдання 10.
 
 Завдання 11: WHERE у поєднанні з JOIN
@@ -142,11 +150,9 @@ FROM Accident A
 JOIN Victim V ON A.ID_Accident = V.ID_Accident
 WHERE A.Investigation_Status = 'Open';
  ![image](https://github.com/user-attachments/assets/5f6a1f18-144b-43b7-bb97-3ea1d0517a4e)
+ 
 Рисунок 16 – результат завдання 11.
-                 
-              
-       
-
+                              
 Висновки: 
 У ході виконання роботи я навчилася формувати запити до бази даних із використанням умови WHERE, що дозволяє здійснювати селекцію даних за заданими критеріями. Освоїла застосування логічних операторів AND, OR, NOT для побудови складних умов фільтрації.
 Я також працювала з багатотабличними запитами, використовуючи різні види JOIN (INNER JOIN, LEFT JOIN), що дало змогу об’єднувати дані з декількох таблиць та отримувати комплексну інформацію про ДТП, їх учасників та наслідки.
