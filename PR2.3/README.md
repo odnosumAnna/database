@@ -87,6 +87,7 @@ docker exec -it mssql-study /bin/sh
  ![image](https://github.com/user-attachments/assets/cdb2e1f9-fb05-4ae2-b4dc-94cdc9366754)
 ![image](https://github.com/user-attachments/assets/dd2923e6-519c-4cde-a52a-810fb1961950)
 ![image](https://github.com/user-attachments/assets/9585342c-d51a-405c-bb5a-d65743e1550c)
+
                               Рисунок 15 –  зупинка контейнера  та видалення контейнера
 
 
