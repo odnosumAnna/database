@@ -76,6 +76,7 @@ docker exec -it mssql-study /bin/sh
 
 
 Завдання 6: під’єднання до БД та виконання скриптів: 
+
   ![image](https://github.com/user-attachments/assets/f0e455c7-1542-44c6-be58-a023f1673ee1)
 ![image](https://github.com/user-attachments/assets/2c70bf70-4fa6-45a9-ae42-44fcfa084a57)
 ![image](https://github.com/user-attachments/assets/45325152-50f7-4003-b1fd-31737349cdf8)
