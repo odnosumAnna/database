@@ -1,6 +1,6 @@
-                                                  Практична робота 2
+                                                  Практична робота 3
                                                   
-Мета роботи: Навчитися створювати запити до бази даних з використанням умови WHERE, виконувати багатотабличні запити, застосовувати різні види JOIN для об'єднання даних із кількох таблиць, а також використовувати складні умови фільтрації.
+Мета роботи: Навчитись працювати з Docker-контейнерами для розгортання MS SQL Server, створювати власні образи (images), використовувати томи (volumes) для збереження даних між запусками контейнерів.
 
                                              Варіант №20 (ДАІ)
 База даних повинна містити інформацію про дорожньо-транспортні
@@ -26,146 +26,83 @@
 ![image](https://github.com/user-attachments/assets/96d46b57-0b9a-4983-97ca-c6d99bad622c)
 
 
-                          Бізнес-правила для системи ДАІ
-1.	Максимальна довжина моделі транспортного засобу - 50 символів.
-2.	Максимальна довжина державного номера транспортного засобу - 10 символів.
-3.	Кожне ДТП повинно мати хоча б одного призначеного міліціонера.
-4.	Максимальна довжина адреси місця ДТП - 100 символів.
-5.	Інформація про травму завжди повинна бути прив'язана до конкретного постраждалого.
-6.	Максимальна довжина опису типу травми - 100 символів.
-7.	Кожний постраждалий повинен бути зареєстрований в конкретному ДТП.
-8.	Максимальна довжина звання міліціонера - 30 символів.
-9.	В одному ДТП може брати участь декілька транспортних засобів.
-10.	Максимальна довжина номера посвідчення водія - 10 символів.
-11.	Максимальна довжина номера паспорта - 9 символів.
-12.	Тип ДТП повинен бути обов'язково вказаний.
-13.	Один водій може керувати тільки одним транспортним засобом в момент ДТП.
-14.	Максимальна довжина ПІБ учасників - 50 символів для кожного компонента.
 
-
-Завдання 2:
- ![image](https://github.com/user-attachments/assets/ede721a9-0b3b-4876-b804-b98cf12a5be5)
-![image](https://github.com/user-attachments/assets/70426e4e-f033-46c9-9392-5542e0136d26)
-![image](https://github.com/user-attachments/assets/939a9c65-ea86-48f7-a4ea-b14485005f9f)
-![image](https://github.com/user-attachments/assets/6cbbbacc-459c-4d75-af80-4e3493b5faf2)
-![image](https://github.com/user-attachments/assets/58157818-dc36-4412-82e2-79c4fa4d3a5f)
-
-                      Рисунок 3-7 –успішне додавання по 100 записів у таблиці.
-
-Завдання 3: Використання оператора WHERE
-Виведення всіх ДТП, у яких постраждало більше двох осіб:
-SELECT * FROM Accident WHERE Victim_Count > 2;
-
- ![image](https://github.com/user-attachments/assets/74a0417b-965c-4ae1-b016-c273636d2067)
+Завдання 1: Встановлення Docker Desktop та виведення його версію в терміналі , скриншот з Docker Desktop:
  
-                     Рисунок 8 – результат завдання 3.
+ ![image](https://github.com/user-attachments/assets/24984908-469a-4578-96d1-e1c59cd5daaf)
+![image](https://github.com/user-attachments/assets/e2fbd3ea-c679-4327-ac58-6002bf3f3663)
 
-Завдання 4: Використання логічних операторів у WHERE
+Рисунок 4 - Docker Desktop.
 
-Виведення ДТП з більш ніж двома постраждалими, якщо розслідування ще не закрито:
-SELECT * FROM Accident 
-WHERE Victim_Count > 2 
-AND Investigation_Status = 'Open';
+Завдання 2: образ MSSQL Server:
 
- ![image](https://github.com/user-attachments/assets/518beb23-defe-4b3c-bc23-9fce3ed3e063)
+ ![image](https://github.com/user-attachments/assets/ce6effa3-ffcd-4909-9216-dfb3f4eab2ec)
+
+Рисунок 5 – образ MSSQL Server
+
+
+Завдання 3: запуск контейнера MS SQL:
+![image](https://github.com/user-attachments/assets/b67d33e0-dcb7-4560-a137-99f393ff0c73)
+
  
-                     Рисунок 9 – результат завдання 4.
+Рисунок 6 – вивід версії докера та запуск контейнера.
 
-Завдання  5: Використання оператора LIKE
+Підключення до контейнера: 
+•	Через термінал: 
+docker exec -it mssql-study /bin/sh
+•	Через Docker Desktop: Containers > mssql-study > Exec
 
-Виведення ДТП, які сталися на вулицях, назви яких закінчуються на "Street" або "St":
-SELECT * FROM Accident 
-WHERE Location LIKE '% Street' 
-OR Location LIKE '% St';
+Підʼєднання до бази даних за допомогою ms sql tools всередині контейнера та вивести версію MS SQL Server 
 
-![image](https://github.com/user-attachments/assets/08210964-67ae-455b-ab4f-9069d404a27b)
+/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'YourStrongPassword1!' -C -Q "SELECT @@VERSION"
 
-                     Рисунок 10 – результат завдання 5.
-
-Завдання 6:Використання INNER JOIN
-
-Виведення всіх ДТП разом з іменами постраждалих:
-SELECT A.*, V.LastName AS Victim_LastName, V.FirstName AS Victim_FirstName
-FROM Accident A
-INNER JOIN Victim V ON A.ID_Accident = V.ID_Accident;
-
-![image](https://github.com/user-attachments/assets/9b01e87a-5dd9-4aaa-80ab-e559f6d33156)
-
-                     Рисунок 11 – результат завдання 6.
-
-Завдання 7: Використання LEFT JOIN
-
-Виведення всіх ДТП іменами постраждалих (якщо є, якщо немає — NULL):
-SELECT A.*, 
-       COALESCE(V.LastName, 'No Victim') AS Victim_LastName, 
-       COALESCE(V.FirstName, 'No Victim') AS Victim_FirstName
-FROM Accident A
-LEFT JOIN Victim V ON A.ID_Accident = V.ID_Accident; 
-
-![image](https://github.com/user-attachments/assets/c8923499-35d1-4284-a342-b65b3e12587f)
-
-                     Рисунок 12 – результат завдання 7.
-
-Завдання 8: Використання вкладеного запиту (SUBQUERY)
-
-Виведення ДТП, у яких є хоча б один потерпілий (постраждалий) із тяжкими травмами:
-SELECT * 
-FROM Accident 
-WHERE EXISTS (
-    SELECT 1 
-    FROM Victim 
-    WHERE Victim.ID_Accident = Accident.ID_Accident
-    AND Victim.Severity = 'Severe');
-    
- ![image](https://github.com/user-attachments/assets/566a999f-d373-4022-a4d8-7cea5572c613)
-                     Рисунок 13 – результат завдання 8.
-
-Завдання 9: Використання GROUP BY та HAVING
-
-Підрахунок кількості ДТП за їх типами, якщо таких випадків більше 1:
-SELECT Accident_Type, COUNT(*) AS Total_Accidents 
-FROM Accident 
-GROUP BY Accident_Type 
-HAVING COUNT(*) > 1;
- ![image](https://github.com/user-attachments/assets/e9a0d7b2-063b-49ac-a3da-bddca639d689)
+● зупинити контейнер 
+● видалити контейнер
+![image](https://github.com/user-attachments/assets/ae927c13-576a-469c-b16c-9a191deec91f)
+![image](https://github.com/user-attachments/assets/3104d5e8-279c-4659-abc5-8cf4a9a3dd75)
+![image](https://github.com/user-attachments/assets/dd9be7e9-af73-4046-9df7-224f233f3bdc)
  
-                     Рисунок 14 – результат завдання 9.
+Рисунок 7-8 – робота з контейнером.
 
-Завдання 10: Складний багатотабличний JOIN
+Завдання 4:
+ ![image](https://github.com/user-attachments/assets/a227648d-ca54-4bc3-9fc1-743948ec2b0b)
 
-Виведення ДТП, жертв і водіїв (для кожного ДТП — всі водії, якщо є потерпілі):
-SELECT A.*, 
-       V.LastName AS Victim_LastName, 
-       V.FirstName AS Victim_FirstName, 
-       D.LastName AS Driver_LastName, 
-       D.FirstName AS Driver_FirstName
-FROM Accident A
-JOIN Victim V ON A.ID_Accident = V.ID_Accident
-JOIN Driver_Involvement DI ON A.ID_Accident = DI.ID_Accident
-JOIN Driver D ON DI.ID_Driver = D.ID_Driver
-WHERE A.Victim_Count > 1;
+Рисунок 9 – том(volume) який буде зберігати інформацію БД ззовні контейнера.
 
- ![image](https://github.com/user-attachments/assets/4b8f0f60-6c44-4f6f-b84b-e796c6b5f7ee)
- 
-                     Рисунок 15 – результат завдання 10.
+Завдання 5:
+ ![image](https://github.com/user-attachments/assets/bae98acd-9463-44d4-8987-6fd41b659cab)
 
-Завдання 11: WHERE у поєднанні з JOIN
+Рисунок 10 – запуск контейнера MS SQL відкривши порт 1433*
 
-Виведення всіх відкритих ДТП разом з іменами постраждалих:
-SELECT A.*, 
-       V.LastName AS Victim_LastName, 
-       V.FirstName AS Victim_FirstName
-FROM Accident A
-JOIN Victim V ON A.ID_Accident = V.ID_Accident
-WHERE A.Investigation_Status = 'Open';
 
- ![image](https://github.com/user-attachments/assets/5f6a1f18-144b-43b7-bb97-3ea1d0517a4e)
- 
-                     Рисунок 16 – результат завдання 11.
-                              
+Завдання 6: під’єднання до БД та виконання скриптів: 
+  ![image](https://github.com/user-attachments/assets/f0e455c7-1542-44c6-be58-a023f1673ee1)
+![image](https://github.com/user-attachments/assets/2c70bf70-4fa6-45a9-ae42-44fcfa084a57)
+![image](https://github.com/user-attachments/assets/45325152-50f7-4003-b1fd-31737349cdf8)
+![image](https://github.com/user-attachments/assets/2265e381-b84b-4916-83b9-c17d26503d1a)
+
+Рисунок  11-14– під’єднання до БД та виконання скриптів ○ SETUP.sql ○ INSERT.sql ○ UPDATE.sql 
+
+ ![image](https://github.com/user-attachments/assets/cdb2e1f9-fb05-4ae2-b4dc-94cdc9366754)
+![image](https://github.com/user-attachments/assets/dd2923e6-519c-4cde-a52a-810fb1961950)
+![image](https://github.com/user-attachments/assets/9585342c-d51a-405c-bb5a-d65743e1550c)
+Рисунок 15 –  зупинка контейнера  та видалення контейнера
+
+
+
+
+Завдання 7: mssql контейнер, змонтування вже створеного тома та відкриття порту:
+  ![image](https://github.com/user-attachments/assets/f162cb99-266f-439c-8d0b-64f684bbb4e3)
+![image](https://github.com/user-attachments/assets/33e030f1-0665-40f8-a606-314052fd52ab)
+![image](https://github.com/user-attachments/assets/ca8f4fc2-2f16-44c9-8600-4b725fb84dad)
+![image](https://github.com/user-attachments/assets/e3af364b-dbeb-4663-b585-a2b220822369)
+![image](https://github.com/user-attachments/assets/38f9833f-144c-46e2-af54-c1d76202df0e)
+![image](https://github.com/user-attachments/assets/ecd5390e-e2c5-4eda-8052-0cc12449d59a)
+
+Рисунок  16-20– Підʼєднання до БД та виконання QUERY.sql
+ ![image](https://github.com/user-attachments/assets/5afa2b5e-c649-486c-80a8-01a3656d9082)
+
+Рисунок  21 – виконання QUERY.sql
 Висновки: 
-У ході виконання роботи я навчилася формувати запити до бази даних із використанням умови WHERE, що дозволяє здійснювати селекцію даних за заданими критеріями. Освоїла застосування логічних операторів AND, OR, NOT для побудови складних умов фільтрації.
-Я також працювала з багатотабличними запитами, використовуючи різні види JOIN (INNER JOIN, LEFT JOIN), що дало змогу об’єднувати дані з декількох таблиць та отримувати комплексну інформацію про ДТП, їх учасників та наслідки.
-Крім того, я застосувала вкладені запити (SUBQUERY) для реалізації складних вибірок, а також оператори GROUP BY та HAVING для групування даних і отримання статистичних підсумків.
-Таким чином, у ході виконання роботи я здобула навички роботи з SQL-запитами різного рівня складності, що є важливим для ефективного аналізу та обробки інформації в реляційних базах даних.
+У ході виконання роботи я навчилася працювати з Docker-контейнерами для розгортання MS SQL Server, створювати власні образи (images), використовувати томи (volumes) для збереження даних між запусками контейнерів.
 
