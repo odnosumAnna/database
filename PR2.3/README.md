@@ -32,20 +32,20 @@
  ![image](https://github.com/user-attachments/assets/24984908-469a-4578-96d1-e1c59cd5daaf)
 ![image](https://github.com/user-attachments/assets/e2fbd3ea-c679-4327-ac58-6002bf3f3663)
 
-Рисунок 4 - Docker Desktop.
+                              Рисунок 4 - Docker Desktop.
 
 Завдання 2: образ MSSQL Server:
 
  ![image](https://github.com/user-attachments/assets/ce6effa3-ffcd-4909-9216-dfb3f4eab2ec)
 
-Рисунок 5 – образ MSSQL Server
+                              Рисунок 5 – образ MSSQL Server
 
 
 Завдання 3: запуск контейнера MS SQL:
 ![image](https://github.com/user-attachments/assets/b67d33e0-dcb7-4560-a137-99f393ff0c73)
 
  
-Рисунок 6 – вивід версії докера та запуск контейнера.
+                              Рисунок 6 – вивід версії докера та запуск контейнера.
 
 Підключення до контейнера: 
 •	Через термінал: 
@@ -62,17 +62,17 @@ docker exec -it mssql-study /bin/sh
 ![image](https://github.com/user-attachments/assets/3104d5e8-279c-4659-abc5-8cf4a9a3dd75)
 ![image](https://github.com/user-attachments/assets/dd9be7e9-af73-4046-9df7-224f233f3bdc)
  
-Рисунок 7-8 – робота з контейнером.
+                              Рисунок 7-8 – робота з контейнером.
 
 Завдання 4:
  ![image](https://github.com/user-attachments/assets/a227648d-ca54-4bc3-9fc1-743948ec2b0b)
 
-Рисунок 9 – том(volume) який буде зберігати інформацію БД ззовні контейнера.
+                              Рисунок 9 – том(volume) який буде зберігати інформацію БД ззовні контейнера.
 
 Завдання 5:
  ![image](https://github.com/user-attachments/assets/bae98acd-9463-44d4-8987-6fd41b659cab)
 
-Рисунок 10 – запуск контейнера MS SQL відкривши порт 1433*
+                              Рисунок 10 – запуск контейнера MS SQL відкривши порт 1433*
 
 
 Завдання 6: під’єднання до БД та виконання скриптів: 
@@ -81,12 +81,12 @@ docker exec -it mssql-study /bin/sh
 ![image](https://github.com/user-attachments/assets/45325152-50f7-4003-b1fd-31737349cdf8)
 ![image](https://github.com/user-attachments/assets/2265e381-b84b-4916-83b9-c17d26503d1a)
 
-Рисунок  11-14– під’єднання до БД та виконання скриптів ○ SETUP.sql ○ INSERT.sql ○ UPDATE.sql 
+                              Рисунок  11-14– під’єднання до БД та виконання скриптів ○ SETUP.sql ○ INSERT.sql ○ UPDATE.sql 
 
  ![image](https://github.com/user-attachments/assets/cdb2e1f9-fb05-4ae2-b4dc-94cdc9366754)
 ![image](https://github.com/user-attachments/assets/dd2923e6-519c-4cde-a52a-810fb1961950)
 ![image](https://github.com/user-attachments/assets/9585342c-d51a-405c-bb5a-d65743e1550c)
-Рисунок 15 –  зупинка контейнера  та видалення контейнера
+                              Рисунок 15 –  зупинка контейнера  та видалення контейнера
 
 
 
@@ -99,10 +99,10 @@ docker exec -it mssql-study /bin/sh
 ![image](https://github.com/user-attachments/assets/38f9833f-144c-46e2-af54-c1d76202df0e)
 ![image](https://github.com/user-attachments/assets/ecd5390e-e2c5-4eda-8052-0cc12449d59a)
 
-Рисунок  16-20– Підʼєднання до БД та виконання QUERY.sql
+                              Рисунок  16-20– Підʼєднання до БД та виконання QUERY.sql
  ![image](https://github.com/user-attachments/assets/5afa2b5e-c649-486c-80a8-01a3656d9082)
 
-Рисунок  21 – виконання QUERY.sql
+                              Рисунок  21 – виконання QUERY.sql
 Висновки: 
 У ході виконання роботи я навчилася працювати з Docker-контейнерами для розгортання MS SQL Server, створювати власні образи (images), використовувати томи (volumes) для збереження даних між запусками контейнерів.
 
