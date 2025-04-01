@@ -65,6 +65,7 @@ FROM Culprit;
                       Рисунок  4 – виконання завдання 2.
 
 Завдання 3. Використання агрегатних функцій
+
 Запит 1: Підрахунок загальної кількості постраждалих у всіх ДТП
 
 SELECT SUM(Victim_Count) AS TotalVictims FROM Accident;
@@ -99,7 +100,9 @@ SELECT MAX(Year) AS NewestVehicle, MIN(Year) AS OldestVehicle FROM Vehicle;
                         Рисунок  5 – виконання завдання 3.
                         
 Завдання 4. Запити з використанням віконних функцій
+
 Запит 1: Нумерація ДТП за датою
+
 SELECT ID_Accident, Date, 
        ROW_NUMBER() OVER (ORDER BY Date) AS AccidentNumber
 FROM Accident;
@@ -108,7 +111,9 @@ FROM Accident;
 •	OVER (ORDER BY Date) – визначає, що нумерація буде йти за датою.
 •	AS AccidentNumber – задає назву для стовпця з номером ДТП.
  Результат: кожній ДТП присвоєно унікальний порядковий номер.
+ 
 Запит 2: Визначення кількості постраждалих у кожній ДТП та середньої кількості по всій таблиці
+
 SELECT ID_Accident, Victim_Count, 
        AVG(Victim_Count) OVER () AS AvgVictimCount
 FROM Accident;
@@ -116,7 +121,9 @@ FROM Accident;
 •	AVG(Victim_Count) OVER () – обчислює середню кількість постраждалих у всіх ДТП, але виводить це значення у кожному рядку.
 •	OVER () – означає, що середнє обчислюється по всій таблиці.
  Результат: у кожному рядку міститься кількість постраждалих у конкретному ДТП та середнє значення по всіх ДТП.
+ 
 Запит 3: Обчислення кількості ДТП до поточного рядка (з накопиченням)
+
 SELECT ID_Accident, Date, 
        COUNT(ID_Accident) OVER (ORDER BY Date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS CumulativeAccidents
 FROM Accident;
@@ -131,7 +138,9 @@ FROM Accident;
 
                               Рисунок  6 – виконання завдання 4
 Завдання 5: Запити з використанням рядкових функцій
+
 Запит 1: Перетворення імен водіїв у верхній регістр
+
 SELECT ID_Driver, FirstName, LastName, 
        UPPER(FirstName) AS UpperFirstName, 
        UPPER(LastName) AS UpperLastName
@@ -141,6 +150,7 @@ FROM Driver;
  Результат: виводить імена водіїв як у вихідному вигляді, так і у верхньому регістрі.
 
 Запит 2: Витягування серії та номера водійського посвідчення
+
 SELECT ID_Driver, License_Number, 
        LEFT(License_Number, 2) AS LicenseSeries, 
        RIGHT(License_Number, 6) AS LicenseNumber
@@ -149,7 +159,9 @@ FROM Driver;
 •	LEFT(License_Number, 2) – отримує перші два символи (серію).
 •	RIGHT(License_Number, 6) – отримує останні 6 символів (номер посвідчення).
  Результат: у кожному рядку відображається серія та номер водійського посвідчення окремо.
+ 
 Запит 3: Видалення пробілів з номера автомобіля
+
 SELECT ID_Vehicle, License_Plate, 
        TRIM(License_Plate) AS TrimmedLicensePlate
 FROM Vehicle;
@@ -163,7 +175,9 @@ FROM Vehicle;
                       
 Завдання 6: Запити з використанням функцій для обробки дати
 Функції для роботи з датою дозволяють отримувати поточну дату, додавати дні, визначати різницю між датами тощо.
+
 Запит 1: Визначення віку водійського посвідчення
+
 SELECT ID_Driver, License_Number, License_Expiry, 
        DATEDIFF(DAY, GETDATE(), License_Expiry) AS DaysUntilExpiry,
        CASE 
@@ -183,13 +197,16 @@ o	'Expired' – якщо посвідчення прострочене.
 o	'Valid' – якщо посвідчення ще дійсне.
 
 Запит 2: Визначення дня тижня для кожного ДТП
+
 SELECT ID_Accident, Date, 
        DATENAME(WEEKDAY, Date) AS AccidentDay
 FROM Accident;
 Аналіз запиту:
 •	DATENAME(WEEKDAY, Date) – повертає день тижня для кожної ДТП (наприклад, "Monday").
  Результат: показує, в який день тижня сталося кожне ДТП.
+ 
 Запит 3: Додавання 7 днів до дати ДТП (для прогнозу наслідків)
+
 SELECT ID_Accident, Date, 
        DATEADD(DAY, 7, Date) AS FollowUpDate
 FROM Accident;
