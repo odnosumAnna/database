@@ -1,6 +1,6 @@
-                                                  Практична робота 3
+                                                  Практична робота 4
                                                   
-Мета роботи: Навчитись працювати з Docker-контейнерами для розгортання MS SQL Server, створювати власні образи (images), використовувати томи (volumes) для збереження даних між запусками контейнерів.
+Мета роботи: Метою даної роботи є ознайомлення з концепцією функцій у MSSQL, зокрема скалярних та віконних функцій, та їх застосування у практичних запитах. Робота передбачає вивчення можливостей скалярних функцій для обробки та трансформації даних у базах даних.
 
                                              Варіант №20 (ДАІ)
 База даних повинна містити інформацію про дорожньо-транспортні
@@ -27,84 +27,181 @@
 
 
 
-Завдання 1: Встановлення Docker Desktop та виведення його версію в терміналі , скриншот з Docker Desktop:
+Завдання 2. Агрегатна функція COUNT()
+-- Підрахунок кількості записів у таблиці Accident
+SELECT 'Accident' AS TableName, COUNT(*) AS RecordCount
+FROM Accident;
+
+-- Підрахунок кількості записів у таблиці Driver_Involvement
+SELECT 'Driver_Involvement' AS TableName, COUNT(*) AS RecordCount
+FROM Driver_Involvement;
+
+-- Підрахунок кількості записів у таблиці Vehicle
+SELECT 'Vehicle' AS TableName, COUNT(*) AS RecordCount
+FROM Vehicle;
+
+-- Підрахунок кількості записів у таблиці Driver
+SELECT 'Driver' AS TableName, COUNT(*) AS RecordCount
+FROM Driver;
+
+-- Підрахунок кількості записів у таблиці Policeman
+SELECT 'Policeman' AS TableName, COUNT(*) AS RecordCount
+FROM Policeman;
+
+-- Підрахунок кількості записів у таблиці Victim
+SELECT 'Victim' AS TableName, COUNT(*) AS RecordCount
+FROM Victim;
+
+-- Підрахунок кількості записів у таблиці Pedestrian
+SELECT 'Pedestrian' AS TableName, COUNT(*) AS RecordCount
+FROM Pedestrian;
+
+-- Підрахунок кількості записів у таблиці Culprit
+SELECT 'Culprit' AS TableName, COUNT(*) AS RecordCount
+FROM Culprit;
+
+![image](https://github.com/user-attachments/assets/bdd54784-4943-4e26-92f0-aa2f8fb08629)
+
+                      Рисунок  4 – виконання завдання 2.
+
+Завдання 3. Використання агрегатних функцій
+Запит 1: Підрахунок загальної кількості постраждалих у всіх ДТП
+
+SELECT SUM(Victim_Count) AS TotalVictims FROM Accident;
+Аналіз запиту:
+•	SUM(Victim_Count) – агрегатна функція, яка підсумовує всі значення в стовпці Victim_Count (кількість постраждалих у ДТП).
+•	AS TotalVictims – задає назву для виведеного стовпця.
+•	FROM Accident – визначає таблицю, з якої беруться дані.
+ Результат: загальна кількість постраждалих у всіх зафіксованих ДТП.
+
+Запит 2: Середній рік випуску транспортних засобів
+
+SELECT AVG(Year) AS AverageVehicleYear FROM Vehicle;
+Аналіз запиту:
+•	AVG(Year) – агрегатна функція, яка обчислює середній рік випуску автомобілів.
+•	AS AverageVehicleYear – встановлює ім’я для вихідного стовпця.
+•	FROM Vehicle – джерело даних для обчислення.
+ Результат: середній рік випуску всіх зареєстрованих у ДТП транспортних засобів.
+
+Запит 3: Пошук найновішого та найстарішого транспортного засобу
+
+SELECT MAX(Year) AS NewestVehicle, MIN(Year) AS OldestVehicle FROM Vehicle;
+Аналіз запиту:
+•	MAX(Year) – повертає найбільше значення з колонки Year (найновіший автомобіль).
+•	MIN(Year) – повертає найменше значення з колонки Year (найстаріший автомобіль).
+•	AS NewestVehicle, AS OldestVehicle – задають назви для виведених стовпців.
+•	FROM Vehicle – джерело даних.
+ Результат: знайдено рік випуску найновішого та найстарішого автомобіля в базі.
+
+![image](https://github.com/user-attachments/assets/6898f124-0e0f-4109-9deb-1f969f908d11)
+
  
- ![image](https://github.com/user-attachments/assets/24984908-469a-4578-96d1-e1c59cd5daaf)
-![image](https://github.com/user-attachments/assets/e2fbd3ea-c679-4327-ac58-6002bf3f3663)
-
-                              Рисунок 4 - Docker Desktop.
-
-Завдання 2: образ MSSQL Server:
-
- ![image](https://github.com/user-attachments/assets/ce6effa3-ffcd-4909-9216-dfb3f4eab2ec)
-
-                              Рисунок 5 – образ MSSQL Server
-
-
-Завдання 3: запуск контейнера MS SQL:
-![image](https://github.com/user-attachments/assets/b67d33e0-dcb7-4560-a137-99f393ff0c73)
+                        Рисунок  5 – виконання завдання 3.
+                        
+Завдання 4. Запити з використанням віконних функцій
+Запит 1: Нумерація ДТП за датою
+SELECT ID_Accident, Date, 
+       ROW_NUMBER() OVER (ORDER BY Date) AS AccidentNumber
+FROM Accident;
+Аналіз запиту:
+•	ROW_NUMBER() OVER (ORDER BY Date) – пронумеровує всі ДТП у порядку зростання дати.
+•	OVER (ORDER BY Date) – визначає, що нумерація буде йти за датою.
+•	AS AccidentNumber – задає назву для стовпця з номером ДТП.
+ Результат: кожній ДТП присвоєно унікальний порядковий номер.
+Запит 2: Визначення кількості постраждалих у кожній ДТП та середньої кількості по всій таблиці
+SELECT ID_Accident, Victim_Count, 
+       AVG(Victim_Count) OVER () AS AvgVictimCount
+FROM Accident;
+Аналіз запиту:
+•	AVG(Victim_Count) OVER () – обчислює середню кількість постраждалих у всіх ДТП, але виводить це значення у кожному рядку.
+•	OVER () – означає, що середнє обчислюється по всій таблиці.
+ Результат: у кожному рядку міститься кількість постраждалих у конкретному ДТП та середнє значення по всіх ДТП.
+Запит 3: Обчислення кількості ДТП до поточного рядка (з накопиченням)
+SELECT ID_Accident, Date, 
+       COUNT(ID_Accident) OVER (ORDER BY Date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS CumulativeAccidents
+FROM Accident;
+Аналіз запиту:
+•	COUNT(ID_Accident) OVER (...) – підраховує кількість ДТП.
+•	ORDER BY Date – ДТП обробляються у порядку зростання дати.
+•	ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW – підрахунок включає всі ДТП до поточного рядка.
+ Результат: кожен рядок показує, скільки ДТП сталося до поточної дати (накопичення).
 
  
-                              Рисунок 6 – вивід версії докера та запуск контейнера.
+  ![image](https://github.com/user-attachments/assets/6d6a9958-95db-402a-b7e7-9bcb3ef5e63f)
 
-Підключення до контейнера: 
-•	Через термінал: 
-docker exec -it mssql-study /bin/sh
-•	Через Docker Desktop: Containers > mssql-study > Exec
+                              Рисунок  6 – виконання завдання 4
+Завдання 5: Запити з використанням рядкових функцій
+Запит 1: Перетворення імен водіїв у верхній регістр
+SELECT ID_Driver, FirstName, LastName, 
+       UPPER(FirstName) AS UpperFirstName, 
+       UPPER(LastName) AS UpperLastName
+FROM Driver;
+Аналіз запиту:
+•	UPPER(FirstName), UPPER(LastName) – переводять імена у верхній регістр.
+ Результат: виводить імена водіїв як у вихідному вигляді, так і у верхньому регістрі.
 
-Підʼєднання до бази даних за допомогою ms sql tools всередині контейнера та вивести версію MS SQL Server 
+Запит 2: Витягування серії та номера водійського посвідчення
+SELECT ID_Driver, License_Number, 
+       LEFT(License_Number, 2) AS LicenseSeries, 
+       RIGHT(License_Number, 6) AS LicenseNumber
+FROM Driver;
+Аналіз запиту:
+•	LEFT(License_Number, 2) – отримує перші два символи (серію).
+•	RIGHT(License_Number, 6) – отримує останні 6 символів (номер посвідчення).
+ Результат: у кожному рядку відображається серія та номер водійського посвідчення окремо.
+Запит 3: Видалення пробілів з номера автомобіля
+SELECT ID_Vehicle, License_Plate, 
+       TRIM(License_Plate) AS TrimmedLicensePlate
+FROM Vehicle;
+Аналіз запиту:
+•	TRIM(License_Plate) – видаляє зайві пробіли з номера автомобіля.
+ Результат: повертає номерні знаки без зайвих пробілів.
 
-/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'YourStrongPassword1!' -C -Q "SELECT @@VERSION"
+![image](https://github.com/user-attachments/assets/1c8483d9-f473-420d-b55a-aa4698aa757b)
 
-● зупинити контейнер 
-● видалити контейнер
-![image](https://github.com/user-attachments/assets/ae927c13-576a-469c-b16c-9a191deec91f)
-![image](https://github.com/user-attachments/assets/3104d5e8-279c-4659-abc5-8cf4a9a3dd75)
-![image](https://github.com/user-attachments/assets/dd9be7e9-af73-4046-9df7-224f233f3bdc)
+                      Рисунок  7 – виконання завдання 5
+                      
+Завдання 6: Запити з використанням функцій для обробки дати
+Функції для роботи з датою дозволяють отримувати поточну дату, додавати дні, визначати різницю між датами тощо.
+Запит 1: Визначення віку водійського посвідчення
+SELECT ID_Driver, License_Number, License_Expiry, 
+       DATEDIFF(DAY, GETDATE(), License_Expiry) AS DaysUntilExpiry,
+       CASE 
+           WHEN DATEDIFF(DAY, GETDATE(), License_Expiry) < 0 THEN 'Expired'
+           ELSE 'Valid'
+       END AS Status
+FROM Driver;
+Поелементний аналіз:
+•	ID_Driver – унікальний ідентифікатор водія.
+•	License_Number – номер водійського посвідчення.
+•	License_Expiry – дата закінчення строку дії посвідчення.
+•	DATEDIFF(DAY, GETDATE(), License_Expiry) – обчислює кількість днів між поточною датою (GETDATE()) та датою закінчення дії водійського посвідчення.
+o	Якщо значення додатне – посвідчення ще дійсне.
+o	Якщо від’ємне – посвідчення прострочене.
+•	CASE ... END AS Status – перевіряє, чи DaysUntilExpiry від'ємне, і встановлює статус:
+o	'Expired' – якщо посвідчення прострочене.
+o	'Valid' – якщо посвідчення ще дійсне.
+
+Запит 2: Визначення дня тижня для кожного ДТП
+SELECT ID_Accident, Date, 
+       DATENAME(WEEKDAY, Date) AS AccidentDay
+FROM Accident;
+Аналіз запиту:
+•	DATENAME(WEEKDAY, Date) – повертає день тижня для кожної ДТП (наприклад, "Monday").
+ Результат: показує, в який день тижня сталося кожне ДТП.
+Запит 3: Додавання 7 днів до дати ДТП (для прогнозу наслідків)
+SELECT ID_Accident, Date, 
+       DATEADD(DAY, 7, Date) AS FollowUpDate
+FROM Accident;
+Аналіз запиту:
+•	DATEADD(DAY, 7, Date) – додає 7 днів до дати ДТП.
+ Результат: прогнозована дата контрольного огляду ДТП через тиждень.
  
-                              Рисунок 7-8 – робота з контейнером.
+ ![image](https://github.com/user-attachments/assets/b6c7a537-92dd-455d-a090-e75845589617)
 
-Завдання 4:
- ![image](https://github.com/user-attachments/assets/a227648d-ca54-4bc3-9fc1-743948ec2b0b)
+                                Рисунок  8 – виконання завдання 6
 
-                              Рисунок 9 – том(volume) який буде зберігати інформацію БД ззовні контейнера.
-
-Завдання 5:
- ![image](https://github.com/user-attachments/assets/bae98acd-9463-44d4-8987-6fd41b659cab)
-
-                              Рисунок 10 – запуск контейнера MS SQL відкривши порт 1433*
-
-
-Завдання 6: під’єднання до БД та виконання скриптів: 
-
-  ![image](https://github.com/user-attachments/assets/f0e455c7-1542-44c6-be58-a023f1673ee1)
-![image](https://github.com/user-attachments/assets/2c70bf70-4fa6-45a9-ae42-44fcfa084a57)
-![image](https://github.com/user-attachments/assets/45325152-50f7-4003-b1fd-31737349cdf8)
-![image](https://github.com/user-attachments/assets/2265e381-b84b-4916-83b9-c17d26503d1a)
-
-                              Рисунок  11-14– під’єднання до БД та виконання скриптів ○ SETUP.sql ○ INSERT.sql ○ UPDATE.sql 
-
- ![image](https://github.com/user-attachments/assets/cdb2e1f9-fb05-4ae2-b4dc-94cdc9366754)
-![image](https://github.com/user-attachments/assets/dd2923e6-519c-4cde-a52a-810fb1961950)
-![image](https://github.com/user-attachments/assets/9585342c-d51a-405c-bb5a-d65743e1550c)
-
-                              Рисунок 15 –  зупинка контейнера  та видалення контейнера
-
-
-
-
-Завдання 7: mssql контейнер, змонтування вже створеного тома та відкриття порту:
-  ![image](https://github.com/user-attachments/assets/f162cb99-266f-439c-8d0b-64f684bbb4e3)
-![image](https://github.com/user-attachments/assets/33e030f1-0665-40f8-a606-314052fd52ab)
-![image](https://github.com/user-attachments/assets/ca8f4fc2-2f16-44c9-8600-4b725fb84dad)
-![image](https://github.com/user-attachments/assets/e3af364b-dbeb-4663-b585-a2b220822369)
-![image](https://github.com/user-attachments/assets/38f9833f-144c-46e2-af54-c1d76202df0e)
-![image](https://github.com/user-attachments/assets/ecd5390e-e2c5-4eda-8052-0cc12449d59a)
-
-                              Рисунок  16-20– Підʼєднання до БД та виконання QUERY.sql
- ![image](https://github.com/user-attachments/assets/5afa2b5e-c649-486c-80a8-01a3656d9082)
-
-                              Рисунок  21 – виконання QUERY.sql
 Висновки: 
-У ході виконання роботи я навчилася працювати з Docker-контейнерами для розгортання MS SQL Server, створювати власні образи (images), використовувати томи (volumes) для збереження даних між запусками контейнерів.
+У ході виконання роботи я ознайомилась з концепцією функцій у MSSQL, зокрема скалярних та віконних функцій, та їх застосування у практичних запитах. Робота передбачає вивчення можливостей скалярних функцій для обробки та трансформації даних у базах даних.
+
 
