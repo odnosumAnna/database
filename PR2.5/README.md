@@ -1,7 +1,7 @@
-                                                 Лабораторна робота 4
-          	на тему: «Вивчення DML на прикладі створення функцій для роботи з БД.»
+                                                 ПРАКТИЧНА РОБОТА №5
+          	     на тему: « Поняття індексів і робота з ними в MSSQL.»
                                  
-Мета роботи: Метою даної роботи є ознайомлення з концепцією функцій у MSSQL, зокрема скалярних та віконних функцій, та їх застосування у практичних запитах. Робота передбачає вивчення можливостей скалярних функцій для обробки та трансформації даних у базах даних..
+Мета роботи: Ознайомитися з поняттям індексів у системі керування базами даних Microsoft SQL Server, вивчити їх призначення, особливості використання та вплив на продуктивність запитів. Засвоїти оператори створення індексів, порядок їх застосування, а також методи реорганізації та видалення. Набути практичних навичок роботи з індексами шляхом створення, оптимізації та аналізу їх ефективності у базі даних.
 
                                              Варіант №20 (ДАІ)
 База даних повинна містити інформацію про дорожньо-транспортні
@@ -27,503 +27,442 @@
 ![image](https://github.com/user-attachments/assets/96d46b57-0b9a-4983-97ca-c6d99bad622c)
 
 
-Завдання 3. Скалярний тип функцій
+Виконання завдання 2. 
+Індекс у базі даних
+Індекс у базі даних — це структура, яка дозволяє швидше знаходити та отримувати потрібні дані в таблиці.
+Він працює подібно до змісту або алфавітного покажчика в книзі: замість того, щоб читати всю книгу сторінка за сторінкою, ми швидко переходимо до потрібного розділу через покажчик.
+Коли немає індексу, база даних повинна переглядати всі рядки таблиці (це називається повне сканування таблиці), що займає багато часу при великих об'ємах даних.  Індекс скорочує цей процес, допомагаючи базі швидко знаходити потрібні рядки за певним критерієм.
+Коли використовують індекси?
+•	При частих запитах до бази даних за певними стовпцями (наприклад, пошук клієнтів за прізвищем).
+•	При фільтрації, сортуванні або об'єднанні таблиць (WHERE, ORDER BY, JOIN).
+Індекс прискорює пошук, але займає додаткову пам'ять і трохи сповільнює операції додавання/оновлення/видалення записів.
+Кластеризований індекс
+Кластеризований індекс змінює фізичний порядок записів у таблиці відповідно до значень індексу. Тобто дані таблиці зберігаються впорядковано за цим індексом.
+•	У таблиці може бути тільки один кластеризований індекс, бо записи фізично можуть бути відсортовані лише один раз.
+•	При запитах, які шукають діапазони значень (наприклад, дати від... до...), кластеризований індекс працює дуже ефективно.
+•	При створенні первинного ключа (PRIMARY KEY) зазвичай автоматично створюється кластеризований індекс.
+Приклад:
+Таблиця замовлень впорядкована за датою замовлення. Шукати всі замовлення за певний місяць буде дуже швидко.
+Некластеризований індекс
+Некластеризований індекс створюється окремо від основної таблиці.
+Він містить посилання (вказівники) на фізичне розташування рядків у таблиці, але не змінює порядок зберігання самих записів.
+•	У таблиці можна створити кілька некластеризованих індексів на різні стовпці.
+•	Некластеризований індекс підходить для пошуку окремих значень або для колонок, які часто використовуються у фільтрах.
+•	Для знаходження даних за некластеризованим індексом спочатку шукається індекс, а потім йде звернення до таблиці за даними.
+Приклад: Індекс на колонку "місто проживання клієнта", щоб швидко знайти всіх клієнтів із конкретного міста.
+Порівняльна таблиця кластеризованого та некластеризованого індексу:
 
-Функції:
--- 1. Власна функція для формування П.І.Б. водія
-CREATE FUNCTION dbo.GetDriverFullName
-(
-    @LastName VARCHAR(50),
-    @FirstName VARCHAR(50),
-    @MiddleName VARCHAR(50)
-)
-RETURNS VARCHAR(100)
-AS
-BEGIN
-    RETURN @LastName + ' ' + LEFT(@FirstName, 1) + '.' + LEFT(@MiddleName, 1) + '.'
-END;
+![image](https://github.com/user-attachments/assets/2d19ad5c-9f53-4bcf-b66f-2b2c0a20c553)
 
---2. Власна функція для перевірки прострочення водійського посвідчення
-CREATE FUNCTION dbo.CheckLicenseStatus
-(
-    @ExpiryDate DATE
-)
-RETURNS VARCHAR(20)
-AS
-BEGIN
-    IF @ExpiryDate < GETDATE()
-        RETURN 'Expired';
-    RETURN 'True';
-END;
+Виконання завдання 3. 
+Для аналізу продуктивності запиту до великої таблиці без використання індексів я використала запит умови моєї предметної області: 
 
--- 3. Власна функція для класифікації рівня травмування
-CREATE FUNCTION dbo.ClassifyInjurySeverity
-(
-    @Severity VARCHAR(20)
-)
-RETURNS VARCHAR(20)
-AS
-BEGIN
-    DECLARE @Result VARCHAR(20);
-
-	-- Перетворюємо Severity на верхній регістр для уніфікації
-    SET @Severity = UPPER(@Severity);
-
-    SET @Result = 
-        CASE 
-            WHEN @Severity IN ('Mild', 'Light') THEN 'Mild'
-            WHEN @Severity IN ('Moderate', 'Medium') THEN 'Moderate'
-            WHEN @Severity IN ('Severe', 'Critical', 'Heavy') THEN 'Severe'
-            ELSE 'Unknown'
-        END;
-    RETURN @Result;
-END;
-Запити
-
--- 1. Власна функція для формування П.І.Б. водія
-SELECT 
-    dbo.GetDriverFullName(LastName, FirstName, MiddleName) AS FullName,
-    License_Number
-FROM Driver;
-
---2. Власна функція для перевірки прострочення водійського посвідчення
-SELECT 
-    LastName,
-    FirstName,
-    License_Number,
-    dbo.CheckLicenseStatus(License_Expiry) AS License_Status
-FROM Driver;
-
---3. Власна функція для класифікації рівня травмування
-SELECT 
-    LastName,
-    FirstName,
-    Injury_Type,
-    dbo.ClassifyInjurySeverity(Severity) AS Severity_Level
-FROM Victim;
-
+Лістинг коду 1:
+--Вивести повний список ДТП, які виникли з вини пішоходів, за вказаний період з повними відомостями про них:
+SELECT A.ID_Accident, A.Date, A.Time, A.Location, A.Victim_Count, A.Accident_Type, A.Investigation_Status,
+       P.LastName AS Pedestrian_LastName, P.FirstName AS Pedestrian_FirstName, P.MiddleName AS Pedestrian_MiddleName,
+       P.Address AS Pedestrian_Address, P.Passport_Number AS Pedestrian_Passport
+FROM Accident A
+JOIN Pedestrian P ON A.ID_Accident = P.ID_Accident
+WHERE P.Is_Victim = 1 AND A.Date BETWEEN '2022-01-01' AND '2024-01-01'
+ORDER BY A.Date DESC;
+ 
+ 
+Рисунок 4-5  – виконання завдання 3.
 Пояснення:
-
-Власна функція для формування П.І.Б. водія:
-
-•	Функція: dbo.GetDriverFullName приймає три параметри: Прізвище, Ім'я та По батькові. Вона повертає сформовану строку у вигляді "Прізвище І. П." (LEFT(): для отримання першої літери імені та по батькові.).
-•	Запит: Для кожного водія з таблиці Driver виводиться його повне ім'я за допомогою цієї функції.
-
-Власна функція для перевірки прострочення водійського посвідчення:
-
-•	Функція: dbo.CheckLicenseStatus приймає дату закінчення терміну дії посвідчення і порівнює її з поточною датою за допомогою вбудованої функції GETDATE(). Якщо посвідчення прострочене, функція повертає 'Expired', інакше — 'True'.
-•	Запит: Для кожного водія з таблиці Driver виводиться його статус посвідчення.
-
-Власна функція для класифікації рівня травмування:
-
-•	Функція: dbo.ClassifyInjurySeverity приймає рівень травмування (стрічка) і класифікує його на три категорії: "Mild" (легкий), "Moderate" (середній), "Severe" (важкий). Якщо значення не підходить під жодну з категорій, повертається 'Unknown' (UPPER(): для перетворення рівня травмування на верхній регістр для уніфікації порівнянь.).
-•	Запит: Для кожної жертви з таблиці Victim виводиться її категорія травмування за допомогою цієї функції.
-
-![image](https://github.com/user-attachments/assets/f0606875-ff0d-4a71-b515-436b0ee88c3c)
-![image](https://github.com/user-attachments/assets/61aff2a4-832b-4e74-a593-f5ef87061774)
-
-
-Завдання 4. Inline тип функцій
-
-Функції:
---1. Власна функція для перевірки статусу ДТП:
-CREATE FUNCTION CheckAccidentStatus (@accident_id INT)
-RETURNS TABLE
-AS
-RETURN
-(
-    SELECT Investigation_Status  
-    FROM [DAI].[dbo].[Accident]  
-    WHERE ID_Accident = @accident_id  
-);
-
---2. Власна функція для виведення імені міліціонера за званням:
-CREATE FUNCTION dbo.GetPolicemanName (@Rank VARCHAR(30), @LastName VARCHAR(50), @FirstName VARCHAR(50))
-RETURNS TABLE
-AS
-RETURN
-(
-    SELECT @Rank + ' ' + @LastName + ' ' + LEFT(@FirstName, 1) + '.' AS PolicemanName
-);
---3. Власна функція для перевірки, чи є водій у списку постраждалих:
-CREATE FUNCTION dbo.IsDriverVictim (@DriverID INT, @AccidentID INT)
-RETURNS TABLE
-AS
-RETURN
-(
-    SELECT CASE 
-                WHEN EXISTS (
-                    SELECT 1 
-                    FROM Victim 
-                    WHERE ID_Accident = @AccidentID AND ID_Victim = @DriverID
-                ) 
-                THEN 1 
-                ELSE 0 
-            END AS IsVictim
-);
-
+•	Clustered Index Scan на таблиці Pedestrian — читає всю таблицю, шукаючи записи, де Is_Victim = 1, оскільки немає відповідного індексу.
+•	Clustered Index Seek на таблиці Accident — виконується ефективний пошук конкретних записів за ID_Accident під час з'єднання (JOIN).
+•	Nested Loops (Inner Join) — використовується для з'єднання таблиць Accident і Pedestrian; добре працює для невеликої кількості даних.
+•	Sort — сортування результатів за A.Date DESC, що вимагає додаткових ресурсів і займає найбільшу частину вартості запиту (41%).
+•	Загальний Query cost: 100% (все навантаження припадає на цей запит).
+Проблеми продуктивності:
+•	Повне сканування таблиці Pedestrian (Clustered Index Scan) уповільнює запит через відсутність індексу за полем Is_Victim.
+•	Сортування за датою (ORDER BY A.Date DESC) суттєво навантажує систему, особливо на великих об'ємах даних.
+•	Використання Nested Loops на великих обсягах даних призводить до тривалого часу обробки.
+Виконання завдання 4. 
+Для виконання цього завдання  я використовую запити за умовою моєї предметної області , тобто SQL-запити, які використовують умови фільтрації (WHERE, ORDER BY, JOIN) для таблиць із великою кількістю записів.
 Запити:
---1. Власна функція для перевірки статусу ДТП:
+--Вивести повний список ДТП, на які виїжджали міліціонери із зазначеним званням за вказаний період часу, з повними відомостями про ДТП:
+SELECT A.ID_Accident, A.Date, A.Time, A.Location, A.Victim_Count, A.Accident_Type, A.Investigation_Status,
+       Po.LastName AS Policeman_LastName, Po.FirstName AS Policeman_FirstName, Po.MiddleName AS Policeman_MiddleName,
+       Po.Rank AS Policeman_Rank
+FROM Accident A
+JOIN Policeman Po ON A.ID_Accident = Po.ID_Accident
+WHERE Po.Rank = 'Lieutenant' AND A.Date BETWEEN '2022-01-01' AND '2024-01-01'
+ORDER BY A.Date DESC;
+
+--Скласти список водіїв, які брали участь більше ніж в одній ДТП за зазначений період часу, з повними відомостями про цих водіїв:
+SELECT D.LastName, D.FirstName, D.MiddleName, D.Address, D.License_Number, D.License_Expiry, D.Phone
+FROM Driver D
+JOIN Driver_Involvement DI ON D.ID_Driver = DI.ID_Driver
+JOIN Accident A ON DI.ID_Accident = A.ID_Accident
+WHERE A.Date BETWEEN '2022-01-01' AND '2024-01-01'
+GROUP BY D.ID_Driver, D.LastName, D.FirstName, D.MiddleName, D.Address, D.License_Number, D.License_Expiry, D.Phone
+HAVING COUNT(DI.ID_Accident) > 1
+ORDER BY D.LastName, D.FirstName;
+
+--	Скласти список постраждалих у ДТП за вказаний період часу з повними відомостями про ці ДТП, упорядковані за кількістю травм певного виду.
 SELECT 
-    ID_Accident, 
-    Accident.Investigation_Status AS Accident_Status
-FROM [DAI].[dbo].[Accident]
-CROSS APPLY dbo.CheckAccidentStatus(ID_Accident);
-
---2. Власна функція для виведення імені міліціонера за званням:
-SELECT 
-    Policeman.ID_Policeman, 
-    Policeman.Rank, 
-    Policeman.LastName, 
-    Policeman.FirstName,
-    Name.PolicemanName
-FROM Policeman
-CROSS APPLY dbo.GetPolicemanName(Policeman.Rank, Policeman.LastName, Policeman.FirstName) AS Name;
-
---3. Власна функція для перевірки, чи є водій у списку постраждалих:
-SELECT 
-    Driver.LastName,
-    Driver.FirstName,
-    DriverVictim.IsVictim
-FROM Driver
-JOIN Driver_Involvement ON Driver.ID_Driver = Driver_Involvement.ID_Driver
-CROSS APPLY dbo.IsDriverVictim(Driver.ID_Driver, Driver_Involvement.ID_Accident) AS DriverVictim
-WHERE Driver_Involvement.ID_Accident = 1;
-
-Пояснення:
-
-Власна функція для перевірки статусу ДТП:
-
-•	Функція: dbo.CheckAccidentStatus приймає параметр @accident_id, який є ідентифікатором ДТП. Функція перевіряє, який статус має конкретне ДТП, зберігаючи його у таблиці Accident. Повертається значення поля Investigation_Status для відповідного ДТП.
-•	Запит: У запиті використовується функція для того, щоб для кожного запису в таблиці Accident вивести відповідний статус розслідування ДТП. Використовується конструкція CROSS APPLY для застосування функції до кожного рядка таблиці Accident.
-
-Власна функція для виведення імені міліціонера за званням:
-
-•	Функція: dbo.GetPolicemanName приймає три параметри: @Rank (звання), @LastName (прізвище) та @FirstName (ім'я). Функція формує повне ім'я міліціонера у форматі "Звання Прізвище І." (де І — це перша буква імені міліціонера).
-•	Запит: Для кожного міліціонера з таблиці Policeman запит виводить повне ім'я у зазначеному форматі, застосовуючи функцію через CROSS APPLY.
-
-Власна функція для перевірки, чи є водій у списку постраждалих:
-
-•	Функція: dbo.IsDriverVictim приймає два параметри: @DriverID (ідентифікатор водія) та @AccidentID (ідентифікатор ДТП). Функція перевіряє наявність водія в таблиці Victim для вказаного ДТП, повертаючи 1, якщо водій є постраждалим, і 0, якщо не є.
-•	Запит: Запит для кожного водія з таблиці Driver, який залучений до конкретного ДТП, виводить інформацію, чи є він постраждалим, використовуючи функцію через CROSS APPLY.
-
-![image](https://github.com/user-attachments/assets/68154241-7e69-42a4-9591-46c248363010)
-
-Завдання 5. Multistate тип функцій
-Функції:
-
---1. Multistate функція для класифікації ДТП за кількістю постраждалих:
-CREATE FUNCTION dbo.ClassifyAccidentByVictimCount
-(
-    @VictimCount INT
-)
-RETURNS TABLE
-AS
-RETURN
-(
-    SELECT CASE
-            WHEN @VictimCount = 0 THEN 'No Victims'
-            WHEN @VictimCount BETWEEN 1 AND 2 THEN 'Minor Accident'
-            WHEN @VictimCount BETWEEN 3 AND 5 THEN 'Moderate Accident'
-            ELSE 'Severe Accident'
-           END AS Severity
-)
---2. Multistate функція для визначення, чи є водій винуватцем (або пішоходом):
-CREATE FUNCTION dbo.IsCulprit
-(
-    @ID_Culprit INT
-)
-RETURNS TABLE
-AS
-RETURN
-(
-    SELECT CASE
-            WHEN Type = 'Driver' THEN 'Driver'
-            WHEN Type = 'Pedestrian' THEN 'Pedestrian'
-            ELSE 'Unknown'
-           END AS CulpritType
-    FROM Culprit
-    WHERE ID_Culprit = @ID_Culprit
-)
-
---3. Multistate функція для визначення найбільш серйозної травми постраждалого:
-CREATE FUNCTION dbo.GetInjuryDate
-(
-    @InjuryType VARCHAR(100)
-)
-RETURNS TABLE
-AS
-RETURN
-(
-    SELECT Hospitalization_Status
-    FROM Victim
-    WHERE Injury_Type = @InjuryType
-    AND Severity = (SELECT MAX(Severity) FROM Victim WHERE Injury_Type = @InjuryType)
-)
-Запити:
-
---1. Multistate функція для класифікації ДТП за кількістю постраждалих:
-SELECT 
-    ID_Accident, 
-    Severity
-FROM Accident
-CROSS APPLY dbo.ClassifyAccidentByVictimCount(Victim_Count);
-
---2. Multistate функція для визначення, чи є водій винуватцем (або пішоходом):
-SELECT 
-    Driver.LastName,
-    Driver.FirstName,
-    CulpritType
-FROM Driver
-JOIN Culprit ON Driver.ID_Driver = Culprit.ID_Related
-CROSS APPLY dbo.IsCulprit(ID_Culprit);
-
---3. Multistate функція для визначення найбільш серйозної травми постраждалого:
-SELECT 
+    v.LastName, v.FirstName, v.MiddleName, v.Address, v.Passport_Number,
+    a.Date, a.Time, a.Location, a.Accident_Type, 
     v.Injury_Type,
-    v.Hospitalization_Status
+    COUNT(v.Injury_Type) OVER (PARTITION BY v.Injury_Type) AS Injury_Count, 
+    COUNT(v.ID_Victim) OVER (PARTITION BY a.ID_Accident) AS Victim_Count
 FROM Victim v
-CROSS APPLY dbo.GetInjuryDate(v.Injury_Type) AS g;
-
+JOIN Accident a ON v.ID_Accident = a.ID_Accident
+WHERE a.Date BETWEEN '2023-01-01' AND '2023-12-31'
+ORDER BY Injury_Count DESC, Victim_Count DESC;
+ 
+ 
+ 
+ 
+ 
+Рисунок 6-10  – виконання завдання 4
 Пояснення:
+1.	Запит на вивід ДТП із міліціонерами певного звання:
+•	Використовується умова фільтрації по Po.Rank та по діапазону дат A.Date.
+•	Проблема без індексів: без індексу система мусить переглядати всю таблицю Policeman і Accident, щоб знайти потрібні записи.
+•	Чому потрібен індекс:
+    -Індекс на Po.Rank прискорює пошук міліціонерів потрібного звання.
+    -Індекс на A.Date дозволяє швидко відбирати ДТП в заданому періоді часу.
+    -Індекс на ID_Accident оптимізує з'єднання JOIN.
+2. Запит на водіїв, які були в більше ніж одній ДТП:
+•	Підключено три таблиці (Driver, Driver_Involvement, Accident), використовується WHERE, GROUP BY і HAVING.
+•	Проблема без індексів: без індексу об'єднання та групування будуть дуже повільними при великій кількості даних.
+•	Чому потрібен індекс:
+    - Індекс на A.Date швидко обмежує період ДТП.
+     -Індекс на DI.ID_Driver та DI.ID_Accident пришвидшує об'єднання таблиць і підрахунок кількості ДТП на одного водія.
 
-Власна функція для класифікації ДТП за кількістю постраждалих:
-VictimCount, який є кількістю постраждалих у ДТП. Функція класифікує ДТП залежно від кількості постраждалих, визначаючи ступінь серйозності події. Повертається значення, яке вказує на ступінь серйозності (наприклад, "Minor Accident", "Moderate Accident", "Severe Accident").
-•	Запит: У запиті використовується функція для кожного запису в таблиці Accident, щоб вивести відповідний ступінь серйозності для кожного ДТП. Використовується конструкція CROSS APPLY, щоб застосувати функцію до кожного рядка таблиці Accident.
+3. Запит на постраждалих і підрахунок кількості травм:
+•	Використовується віконна функція COUNT() OVER, фільтрація по даті та сортування за кількістю травм.
+•	Проблема без індексів: без індексу обчислення кількості травм для кожного виду стане повільним, бо треба переглядати всю таблицю.
+•	Чому потрібен індекс:
+- Індекс на v.Injury_Type оптимізує підрахунок кількості за типом травми.
+- Індекс на a.Date дозволяє швидко вибрати ДТП за потрібний рік.
+- Індекс на v.ID_Accident допомагає ефективно з'єднувати Victim і Accident.
+Загальний висновок:
+•	Індекси значно зменшують обсяг даних, які потрібно сканувати при виконанні запиту.
+•	Вони скорочують час пошуку, фільтрації, об'єднання (JOIN) і сортування (ORDER BY).
+•	При великих об'ємах даних індекси допомагають уникнути повного сканування таблиць (Full Table Scan) і знижують навантаження на базу даних.
 
-Власна функція для визначення, чи є водій винуватцем або пішоходом:
+Виконання завдання 5: 
+Для того щоб виконати завдання зі створення кластеризованого індексу на таблиці, яка містить більше 100 записів, я слідувала таким крокам:
+1.	Підготовка таблиці для створення індексу: Оскільки кластеризований індекс може бути тільки один на таблиці, а у таблиці Accident_Investigation вже був встановлений первинний ключ як кластеризований індекс, я спершу повинна була видалити поточний кластеризований індекс. Це дозволяє створити новий кластеризований індекс на стовпці InvestigationDate.
+2.	Видалення поточного кластеризованого індексу (PK): Я використала ALTER TABLE Accident_Investigation
+DROP CONSTRAINT PK__Accident__57E7E5C453782ADE;
+Ця команда дозволяє видалити поточний первинний ключ, який є кластеризованим індексом для таблиці Accident_Investigation.
+3.	Створення нового кластеризованого індексу на стовпці InvestigationDate: Після видалення старого індексу я створила новий кластеризований індекс на стовпці InvestigationDate, що дозволяє ефективніше виконувати запити, де важливим є сортування чи фільтрація за датою розслідування. Для цього використала команду:
+CREATE CLUSTERED INDEX IX_AccidentInvestigation_InvestigationDate
+ON Accident_Investigation (InvestigationDate);
+4.	Результат: Після виконання цих кроків я отримала успішно створений кластеризований індекс, який дозволяє оптимізувати виконання запитів на таблицю Accident_Investigation з урахуванням поля InvestigationDate.
+Лістинг коду :
+--Видалити поточний кластеризований індекс (PK):
+ALTER TABLE Accident_Investigation
+DROP CONSTRAINT PK__Accident__57E7E5C453782ADE;
 
-•	Функція: dbo.IsCulprit приймає параметр @ID_Culprit, який є ідентифікатором винуватця. Функція перевіряє, чи є винуватець водієм чи пішоходом, повертаючи відповідний тип ("Driver" або "Pedestrian").
-•	Запит: Для кожного водія або пішохода з таблиці Culprit, запит виводить інформацію про тип винуватця, використовуючи функцію через CROSS APPLY.
+-- Створення нового кластеризованого індексу на стовпці InvestigationDate
+CREATE CLUSTERED INDEX IX_AccidentInvestigation_InvestigationDate
+ON Accident_Investigation (InvestigationDate);
 
-Власна функція для визначення найбільш серйозної травми постраждалого:
+ 
+ 
+Рисунок  11-12 – виконання завдання 5
 
-•	Функція: dbo.GetInjuryDate приймає параметр @InjuryType, який є типом травми. Функція повертає статус госпіталізації для найбільш серйозної травми постраждалого з цією травмою.
-•	Запит: У запиті для кожного постраждалого з таблиці Victim виводиться тип травми та статус госпіталізації, використовуючи функцію через CROSS APPLY.
+Виконання завдання 6: 
+Для створення некластеризованого індексу на одному або кількох стовпцях я вибрала таблицю Accident. Вибір стовпців базувався на частому використанні цих полів для фільтрації даних у запитах.
+•	Вибір стовпців:
+o	Location: Це поле містить інформацію про місце ДТП, і його часто використовують для фільтрації або сортування даних за локацією.
+o	Accident_Type: Поле, що містить тип ДТП (наприклад, зіткнення, наїзд, аварія). Це поле також часто використовують для фільтрації даних за типом ДТП.
+Команда для створення некластеризованого індексу:
+CREATE NONCLUSTERED INDEX IX_Accident_Location_AccidentType
+ON Accident (Location, Accident_Type);
+Цей індекс дозволяє покращити виконання запитів, які використовують ці два стовпці для фільтрації або сортування.
+ 
+Рисунок 13  – виконання завдання 6
 
-![image](https://github.com/user-attachments/assets/ca28c041-c606-44d5-bf65-3f417012e641)
-![image](https://github.com/user-attachments/assets/90968d3c-f1c9-4680-94dd-bb346a272207)
-
-Завдання 6. Запити варіанта ДАІ
-
-Запити
-•	Вивести повний список ДТП, які виникли з вини пішоходів, за вказаний
-період з повними відомостями про них;
-•	Знайти місце, де сталася максимальна кількість ДТП;
-•	Вивести повний список ДТП, на які ВИЇжджали міліціонери із зазначеним
-званням за вказаний період часу, з повними відомостями про ДТП;
-•	Скласти список водіїв, які брали участь більше НІЖ В ОДНІЙ ДТП за
-зазначений період часу, З повними відомостями про цих водіїв;
-•	Скласти список постраждалих у ДТП за вказаний період часу з
-повними відомостями про ці ДТП, упорядковані за кількістю травм певного виду.
-•	Внести відомості про нову ДТП;
-•	Видалити відомості про ДТП, які сталися раніше вказаної дати
-
-Функції:
---1. Вивести повний список ДТП, які виникли з вини пішоходів за вказаний період з повними відомостями про них:
-CREATE FUNCTION dbo.GetAccidentsByPedestrians
-(
-    @StartDate DATE,
-    @EndDate DATE
-)
-RETURNS TABLE
-AS
-RETURN 
-(
-    SELECT 
-        A.ID_Accident,
-        A.Date,
-        A.Location,
-        A.Victim_Count,
-        A.Accident_Type,
-        C.Type AS CulpritType
-    FROM Accident A
-    JOIN Culprit C ON A.ID_Accident = C.ID_Accident
-    WHERE A.Date BETWEEN @StartDate AND @EndDate
-    AND C.Type = 'Pedestrian'
-);
-
---2. Знайти місце, де сталася максимальна кількість ДТП:
-CREATE FUNCTION dbo.GetMaxAccidentLocation()
-RETURNS VARCHAR(100)
-AS
-BEGIN
-    RETURN (
-        SELECT TOP 1 Location
-        FROM Accident
-        GROUP BY Location
-        ORDER BY COUNT(ID_Accident) DESC
-    );
-END;
-
---3. Вивести повний список ДТП, на які виїжджали міліціонери із зазначеним званням за вказаний період часу, з повними відомостями про ДТП:
-CREATE FUNCTION dbo.GetAccidentsWithPoliceInvolvement
-(
-    @StartDate DATE,
-    @EndDate DATE,
-    @Rank VARCHAR(50)
-)
-RETURNS TABLE
-AS
-RETURN 
-(
-    SELECT 
-        A.ID_Accident,
-        A.Date,
-        A.Location,
-        A.Victim_Count,
-        A.Accident_Type,
-        P.Rank AS PoliceRank
-    FROM Accident A
-    JOIN Policeman P ON A.ID_Accident = P.ID_Accident
-    WHERE A.Date BETWEEN @StartDate AND @EndDate
-    AND P.Rank = @Rank
-);
-
---4. Скласти список водіїв, які брали участь більше ніж в одній ДТП за зазначений період часу з повними відомостями про цих водіїв:
-CREATE FUNCTION dbo.GetDriversWithMultipleAccidents
-(
-    @StartDate DATE,
-    @EndDate DATE
-)
-RETURNS TABLE
-AS
-RETURN 
-(
-    SELECT 
-        D.LastName,
-        D.FirstName,
-        COUNT(DISTINCT DI.ID_Accident) AS AccidentCount
-    FROM Driver D
-    JOIN Driver_Involvement DI ON D.ID_Driver = DI.ID_Driver
-    JOIN Accident A ON DI.ID_Accident = A.ID_Accident
-    WHERE A.Date BETWEEN @StartDate AND @EndDate
-    GROUP BY D.LastName, D.FirstName
-    HAVING COUNT(DISTINCT DI.ID_Accident) > 1
-);
-
---5. Скласти список постраждалих у ДТП за вказаний період часу з повними відомостями про ці ДТП, упорядковані за кількістю травм певного виду:
-CREATE FUNCTION dbo.GetAccidentVictimsByInjuryType
-(
-    @StartDate DATE,
-    @EndDate DATE
-)
-RETURNS TABLE
-AS
-RETURN 
-(
-    SELECT 
-        A.ID_Accident,
-        A.Date,
-        A.Location,
-        V.FirstName + ' ' + V.LastName AS VictimName,  -- Поєднання імені та прізвища
-        V.Injury_Type,  -- Тип травми
-        V.Severity  -- Ступінь важкості травми
-    FROM Accident A
-    JOIN Victim V ON A.ID_Accident = V.ID_Accident
-    WHERE A.Date BETWEEN @StartDate AND @EndDate
-);
-
---6 Внести відомості про нову ДТП;
-CREATE PROCEDURE dbo.InsertAccident
-(
-    @Date DATE,
-    @Location VARCHAR(100),
-    @Victim_Count INT,
-    @Accident_Type VARCHAR(50),
-    @Investigation_Status VARCHAR(50) = NULL,  
-    @Time DATETIME = NULL                     
-)
-AS
-BEGIN
-    -- Якщо час не переданий, використовуємо поточний час
-    IF @Time IS NULL
-    BEGIN
-        SET @Time = GETDATE();
-    END
-
-    -- Вставляємо новий запис у таблицю Accident
-    INSERT INTO Accident (Date, Time, Location, Victim_Count, Accident_Type, Investigation_Status)
-    VALUES (@Date, @Time, @Location, @Victim_Count, @Accident_Type, @Investigation_Status);
-END;
-
--- 7. Видалити відомості про ДТП, які сталися раніше вказаної дати:
-
-CREATE PROCEDURE dbo.DeleteAccidentsBeforeDate
-(
-    @Date DATE
-)
-AS
-BEGIN
-    -- Спочатку видаляємо залежні записи з таблиці Vehicle
-    DELETE FROM Vehicle
-    WHERE ID_Accident IN (SELECT ID_Accident FROM Accident WHERE Date < @Date);
-
-    -- Потім видаляємо залежні записи з таблиці Driver_Involvement
-    DELETE FROM Driver_Involvement
-    WHERE ID_Accident IN (SELECT ID_Accident FROM Accident WHERE Date < @Date);
-
-    -- Тепер видаляємо записи з таблиці Accident
-    DELETE FROM Accident
-    WHERE Date < @Date;
-END;
-Запити:
-
--- 1. Вивести повний список ДТП, які виникли з вини пішоходів за вказаний період з повними відомостями про них:
-SELECT * 
-FROM dbo.GetAccidentsByPedestrians('2020-01-01', '2025-04-01');
-
--- 2. Знайти місце, де сталася максимальна кількість ДТП:
-SELECT dbo.GetMaxAccidentLocation() AS MaxAccidentLocation;
-
--- 3. Вивести повний список ДТП, на які виїжджали міліціонери із зазначеним званням за вказаний період часу, з повними відомостями про ДТП:
-SELECT * 
-FROM dbo.GetAccidentsWithPoliceInvolvement('2020-01-01', '2025-04-01', 'Captain');
-
--- 4. Скласти список водіїв, які брали участь більше ніж в одній ДТП за зазначений період часу з повними відомостями про цих водіїв:
-SELECT * 
-FROM dbo.GetDriversWithMultipleAccidents('2020-01-01', '2025-04-01');
-
--- 5. Скласти список постраждалих у ДТП за вказаний період часу з повними відомостями про ці ДТП, упорядковані за кількістю травм певного виду:
-SELECT * 
-FROM dbo.GetAccidentVictimsByInjuryType('2020-01-01', '2025-04-01')
-ORDER BY Injury_Type, Severity DESC;
-
--- 6. Внести відомості про нову ДТП:
-INSERT INTO Accident (Date, Time, Location, Victim_Count, Accident_Type, Investigation_Status)
-VALUES ('2025-04-01', GETDATE(), 'Kyiv, Khreshchatyk St.', 3, 'Collision', 'Open');
-
+Виконання завдання 7: 
+Для цього завдання я створюю унікальний індекс для поля Passport_Number в таблиці Victim, оскільки кожен постраждалий має унікальний номер паспорта. Так само, як і у випадку з email в таблиці Users, цей номер паспорта має бути унікальним для кожного постраждалого.
+CREATE UNIQUE INDEX IX_Passport_Number_Unique
+ON Victim(Passport_Number);
+ 
+Рисунок  14 – виконання завдання 7
 Пояснення:
-•	GetAccidentsByPedestrians: Виводить список ДТП, які сталися з вини пішоходів за вказаний період, з повними відомостями (дата, місце, кількість жертв, тип ДТП).
-•	GetMaxAccidentLocation: Повертає місце з найбільшим числом ДТП за весь час.
-•	GetAccidentsWithPoliceInvolvement: Виводить ДТП, у яких брали участь міліціонери із заданим званням в межах вказаного періоду.
-•	GetDriversWithMultipleAccidents: Виводить список водіїв, які брали участь в більше ніж одній ДТП за вказаний період.
-•	GetAccidentVictimsByInjuryType: Показує постраждалих у ДТП за вказаний період з детальними відомостями про тип і важкість травм, впорядкованих за типом травм.
-•	InsertAccident: Додає нову ДТП в базу даних (з можливістю вказати дату, час, місце, кількість жертв та тип ДТП).
-•	DeleteAccidentsBeforeDate: Видаляє всі ДТП та пов'язані з ними записи (автомобілі, водії) до зазначеної дати.
+1.	Таблиця: Створюється унікальний індекс на полі Passport_Number в таблиці Victim.
+2.	Унікальність: Цей індекс гарантує, що в таблиці Victim не буде два однакових номера паспорта, що відповідають різним постраждалим.
+3.	Назва індексу: Назва індексу IX_Passport_Number_Unique вказує на те, що це унікальний індекс для поля Passport_Number.
+Це дозволить забезпечити цілісність даних, гарантуючи, що кожен постраждалий має унікальний номер паспорта в базі.
 
-![image](https://github.com/user-attachments/assets/c8e243c3-2597-4205-8fe1-6bbd64e83391)
+Виконання завдання 8: 
+Створення індексу з включеними стовпцями (INCLUDE)
+У цьому завданні я створила індекс з включеними стовпцями (INCLUDE) для покриття певного SELECT-запиту та порівняла план виконання запиту з індексом та без нього.
+Кроки виконання завдання:
 
+1.	Створення індексу з включеними стовпцями: Я створила індекс з включеними стовпцями для запиту, що часто використовує поля Location та Accident_Type з таблиці Accident.
 
-   Завдання 7. Аналіз продуктивності запитів у MS SQL за допомогою EXPLAIN (Execution Plan).
+Запит, для якого я створила індекс:
+SELECT Location, Accident_Type
+FROM Accident
+WHERE Date BETWEEN '2020-01-01' AND '2020-12-31';
+Створення індексу з включеними стовпцями: Для того щоб прискорити виконання запиту, я створила індекс з включеними стовпцями, які використовуються в SELECT-запиті, і включила додаткові стовпці в індекс:
+CREATE INDEX IX_Accident_Location_AccidentType
+ON Accident(Date)
+INCLUDE (Location, Accident_Type);
+  
    
-![image](https://github.com/user-attachments/assets/d0224925-4fb2-4610-a865-9a6ae8f7453c)
-![image](https://github.com/user-attachments/assets/5ddcf72c-cfc1-499f-9cac-6a011eaad3ab)
-![image](https://github.com/user-attachments/assets/f08f9abe-863a-4fdb-aa49-c602b4368204)
-![image](https://github.com/user-attachments/assets/32488e2f-b81c-47d3-b037-09538c67e8bc)
+ 
+Рисунок 15-19  – виконання завдання 8
 
-Аналіз запитів завдання 3:
+Пояснення:
+Порівняння плану виконання:
+1.	План виконання без індексу: Спочатку я перевірила план виконання запиту без індексу. В цьому випадку SQL-сервер виконує повне сканування таблиці (Table Scan), оскільки індексу, який покриває всі стовпці запиту, немає.
+2.	План виконання з індексом: Після того, як я створила індекс з включеними стовпцями, я перевірила план виконання з використанням цього індексу. SQL-сервер тепер використовує індексний пошук (Index Seek), що дозволяє йому ефективно фільтрувати за Date та витягати стовпці Location і Accident_Type прямо з індексу без потреби звертатися до основної таблиці.
+Результати:
+•	Без індексу: План виконання показує Table Scan, де весь набір даних таблиці сканується для пошуку відповідних рядків. Це може зайняти багато часу, особливо при великій кількості даних.
+•	З індексом: План виконання з індексом показує Index Seek, де SQL-сервер використовує індекс для фільтрації за Date та одночасного отримання необхідних стовпців Location і Accident_Type, що значно прискорює виконання запиту.
+Висновок:
+Створення індексу з включеними стовпцями дозволяє значно покращити ефективність виконання запиту, оскільки сервер використовує індекс для фільтрації та отримання даних, замість того, щоб сканувати всю таблицю. Це дуже корисно для покращення продуктивності, особливо при роботі з великими таблицями.
 
-![image](https://github.com/user-attachments/assets/79177abc-7520-4eb8-a3c1-3a2d779361f7)
+Виконання завдання 9: 
+У цьому завданні я створила фільтрований індекс для таблиці Accident, щоб прискорити виконання запиту, який вибирає всі записи, де статус розслідування дорівнює 'Open'. Ось детальне пояснення кожної частини запиту:
+Створення фільтрованого індексу:
+CREATE NONCLUSTERED INDEX IX_Filtered_InvestigationStatus_Open
+ON Accident(Investigation_Status)
+WHERE Investigation_Status = 'Open';
+•	CREATE NONCLUSTERED INDEX — це команда для створення індексу, який не змінює фізичний порядок даних у таблиці, але прискорює пошук по зазначеному стовпцю.
+•	IX_Filtered_InvestigationStatus_Open — це назва індексу, який я створюю. Ім'я індексу зазвичай повинно відображати його функцію або стовпці, за якими він створений.
+•	ON Accident(Investigation_Status) — цей індекс створюється на стовпці Investigation_Status таблиці Accident. Це означає, що індекс буде використовуватися для фільтрації записів на основі значень у цьому стовпці.
+•	WHERE Investigation_Status = 'Open' — це умовний фільтр, який визначає, що індекс буде створений лише для записів, де значення в стовпці Investigation_Status дорівнює 'Open'. Такий індекс є фільтрованим, тобто він лише охоплює підмножину даних, а не всю таблицю. Це дає змогу скоротити час пошуку саме для цього значення, оскільки база даних не повинна перевіряти всі записи.
 
-Аналіз запитів завдання 4:
 
-![image](https://github.com/user-attachments/assets/f780af60-3d9c-4d8c-86eb-12df6bc521d4)
+Запит для вибору всіх записів зі статусом 'Open':
+SELECT *
+FROM Accident
+WHERE Investigation_Status = 'Open';
+o	SELECT * — вибір усіх стовпців для записів, які задовольняють умову.
+o	FROM Accident — вибір даних з таблиці Accident.
+o	WHERE Investigation_Status = 'Open' — фільтрація записів за значенням в стовпці Investigation_Status, вибираються лише ті записи, де статус розслідування має значення 'Open'.
+Як працює індекс:
+•	Після створення фільтрованого індексу, коли я виконую запит для вибору всіх записів з 'Open' у стовпці Investigation_Status, база даних може швидко скористатися створеним індексом для пошуку цих записів.
+•	Завдяки індексу, який охоплює лише ті записи, де статус дорівнює 'Open', пошук буде швидким, оскільки база даних не буде обробляти всю таблицю, а лише частину даних, що відповідає умові.
+Висновок: Фільтрований індекс оптимізує виконання запитів, де є конкретні фільтри, що обмежують вибірку (як у нашому випадку, коли ми шукаємо записи з певним статусом). Це дозволяє зменшити час виконання запитів, особливо в таблицях з великою кількістю записів.
+ 
 
-Аналіз запитів завдання 5:
+ 
+Рисунок 20-21  – виконання завдання 9
 
-![image](https://github.com/user-attachments/assets/5124aeac-cc94-4db4-a2fc-033ca0488f28)
-![image](https://github.com/user-attachments/assets/bab34d39-0687-4665-a2d4-59b219673e46)
+Виконання завдання 10: 
+Для виконання завдання 10 та отримання інформації про ступінь фрагментації індексів у базі даних, можна використовувати вбудовану функцію sys.dm_db_index_physical_stats, яка надає статистику про фізичний стан індексів у базі даних, включаючи ступінь фрагментації.
+Лістинг коду:
+ SELECT 
+    db.name AS DatabaseName,
+    t.name AS TableName,
+    i.name AS IndexName,
+    ips.index_type_desc AS IndexType,
+    ips.avg_fragmentation_in_percent AS Fragmentation,
+    ips.page_count AS PageCount
+FROM 
+    sys.dm_db_index_physical_stats(NULL, NULL, NULL, NULL, 'DETAILED') AS ips
+JOIN 
+    sys.tables AS t
+    ON ips.object_id = t.object_id
+JOIN 
+    sys.indexes AS i
+    ON ips.object_id = i.object_id
+    AND ips.index_id = i.index_id
+JOIN 
+    sys.databases AS db
+    ON db.database_id = DB_ID()
+WHERE 
+    ips.page_count > 0  -- Фільтруємо індекси, що мають більше 0 сторінок
+ORDER BY 
+    ips.avg_fragmentation_in_percent DESC;  -- Відсортовано за рівнем фрагментації
+
+ Рисунок  22 – виконання завдання 10.
+Пояснення:
+•	sys.dm_db_index_physical_stats(NULL, NULL, NULL, NULL, 'DETAILED') — цей виклик отримує фізичну статистику індексів для всіх таблиць у поточній базі даних, використовуючи режим 'DETAILED', що надає максимальну деталізацію.
+•	avg_fragmentation_in_percent — показує середній рівень фрагментації індексу у відсотках.
+•	page_count — кількість сторінок, що використовуються індексом.
+•	  NULL, NULL, NULL, NULL — ці параметри дозволяють отримати інформацію про всі індекси у всіх таблицях.
+•	 DETAILED — параметр, що вказує на рівень деталізації для отримання точнішої інформації про фрагментацію.
+•	 sys.tables — містить дані про таблиці.
+•	 sys.indexes — містить дані про індекси.
+•	  sys.databases — містить інформацію про бази даних.
+Цей запит дозволяє отримати інформацію про ступінь фрагментації індексів у базі даних без будь-яких додаткових фільтрів чи складних умов. Результати будуть відсортовані за рівнем фрагментації в порядку спадання.
+
+Виконання завдання 11: 
+Реорганізацію індексу для зменшення фрагментації:
+Команда ALTER INDEX ... REORGANIZE використовується для реорганізації індексів в SQL Server, щоб зменшити їх фрагментацію без потреби в повному пересозданні індексу (що зазвичай робиться командою REBUILD). Реорганізація індексу - це менш ресурсозатратна операція, яка допомагає покращити продуктивність при високій фрагментації індексів, але не вимоглива до великих системних ресурсів.
+-- Реорганізація індексу для таблиці Pedestrian
+ALTER INDEX PK__Pedestri__1DD2CD8AA2357B5D 
+ON Pedestrian REORGANIZE;
+Опис запиту:
+•	ALTER INDEX: Це команда для зміни індексу в SQL Server.
+•	PK__Pedestri__1DD2CD8AA2357B5D: Це ім'я індексу, який треба реорганізувати. Ім'я індексу PK__Pedestri__1DD2CD8AA2357B5D виглядає як автоматично згенероване ім'я для первинного ключа в таблиці Pedestrian. Це означає, що індекс використовуватиметься для забезпечення унікальності рядків в таблиці.
+•	ON Pedestrian: Вказує таблицю, для якої треба реорганізувати індекс. У цьому випадку, індекс застосовний до таблиці Pedestrian.
+•	REORGANIZE: Ця операція виконує реорганізацію індексу, що означає, що SQL Server збирає дані в індексах, зменшуючи ступінь фрагментації, не видаляючи і не пересоздаючи індекс. Це менш затратна операція порівняно з повним перезапуском індексу.
+ 
+Рисунок 23   – виконання завдання 11
+
+Виконання завдання 12: 
+Повна перебудова індексу (REBUILD):
+--Повна перебудова індексу (REBUILD)
+ALTER INDEX PK__Victim__962126953F0422DB ON Victim REBUILD;
+ 
+Рисунок  24 – виконання завдання 12
+
+Опис:
+•	ALTER INDEX — команда для зміни або обслуговування індексу в базі даних SQL Server.
+•	PK__Victim__962126953F0422DB — ім'я індексу первинного ключа (Primary Key) для таблиці Victim.
+•	ON Victim — вказує, що ця операція виконується для таблиці Victim.
+•	REBUILD — означає повністю перебудувати індекс, тобто створити його заново.
+Для чого виконується REBUILD?
+•	У таблиці Victim індекс мав показник змін 50, що свідчить про високу фрагментацію або значні зміни в даних.
+•	При високій фрагментації (понад 30%) рекомендується повна перебудова індексу (REBUILD), оскільки:
+o	Вона повністю оптимізує структуру індексу.
+o	Зменшує фрагментацію майже до нуля.
+o	Покращує продуктивність запитів і доступ до даних у таблиці.
+•	Операція REBUILD створює нову копію індексу, тому вона потребує більше ресурсів, ніж реорганізація, але забезпечує кращий результат при високій фрагментації.
+Підсумок: Виконання цієї команди забезпечує повну оптимізацію індексу PK__Victim__962126953F0422DB у таблиці Victim, що підвищить швидкість доступу до даних і загальну продуктивність бази даних.
+
+Виконання завдання 13: 
+Видалення непотрібного індексу, який не використовується в запитах:
+DROP INDEX IX_Passport_Number_Unique ON Victim;
+
+Опис виконаного завдання:
+•	Команда DROP INDEX використовується для видалення індексу з таблиці бази даних.
+•	Індекс IX_Passport_Number_Unique належить таблиці Victim і є некластеризованим індексом.
+•	За статистикою (0 змін і глибина дерева 1), цей індекс не бере участі у запитах і не використовується сервером для оптимізації виконання.
+Чому обрала саме цей індекс для видалення:
+•	Індекс IX_Passport_Number_Unique не бере участі у запитах.
+•	Він займає місце в базі даних і потребує оновлення при зміні даних, навіть якщо не використовується.
+•	Його видалення допоможе оптимізувати використання ресурсів і підвищити загальну продуктивність бази даних.
+Підсумок: Видалення непотрібного індексу дозволяє зекономити простір, зменшити навантаження при зміні даних і прискорити роботу бази даних.
+ 
+Рисунок 25 – виконання завдання 13
+
+Виконання завдання 14: 
+В цьому завданні порівнюю швидкодію запиту до великої таблиці до і після створення індексу до запиту із умови варіанту``Вивести повний список ДТП, які виникли з вини пішоходів, за вказаний період з повними відомостями про них``:
+
+Виконання запиту без індексів:
+ 
+ 
+
+ Вимірювання часу виконання запиту без індексів:
+Для вимірювання часу виконання запиту в SQL Server можна використовувати команду SET STATISTICS TIME ON. Це дозволить отримати інформацію про час виконання запиту:
+SET STATISTICS TIME ON;
+
+-- Запит без індексів
+SELECT A.ID_Accident, A.Date, A.Time, A.Location, A.Victim_Count, A.Accident_Type, A.Investigation_Status,
+       P.LastName AS Pedestrian_LastName, P.FirstName AS Pedestrian_FirstName, P.MiddleName AS Pedestrian_MiddleName,
+       P.Address AS Pedestrian_Address, P.Passport_Number AS Pedestrian_Passport
+FROM Accident A
+JOIN Pedestrian P ON A.ID_Accident = P.ID_Accident
+WHERE P.Is_Victim = 1 AND A.Date BETWEEN '2022-01-01' AND '2024-01-01'
+ORDER BY A.Date DESC;
+
+SET STATISTICS TIME OFF;
+ 
+Створення індексів
+Тепер створимо індекси для колонок, що використовуються у запиті для фільтрації та з'єднання:
+
+-- Створення індексу на колонці Date в таблиці Accident
+CREATE NONCLUSTERED INDEX IX_Accident_Date ON Accident (Date);
+
+-- Створення індексу на колонці ID_Accident в таблиці Pedestrian
+CREATE NONCLUSTERED INDEX IX_Pedestrian_Accident ON Pedestrian (ID_Accident);
+
+ 
+ 
+Рисунок   25-28 – виконання завдання 14
+
+Аналіз результатів
+•	До створення індексів: час виконання запиту був вищий, оскільки SQL Server повинен був виконувати повне сканування таблиць для пошуку відповідних рядків.
+•	Після створення індексів: час виконання запиту значно зменшився, оскільки SQL Server зміг використати індекси для швидшого пошуку потрібних даних.
+Висновок:
+Використання індексів значно покращує продуктивність запиту, особливо коли мова йде про великі таблиці з великою кількістю даних. У цьому випадку створення NONCLUSTERED INDEX на колонках Date в таблиці Accident і ID_Accident в таблиці Pedestrian дозволило значно скоротити час виконання запиту.
+
+
+
+
+
+Виконання завдання 15: Використовуючи Database Engine Tuning Advisor, запропоновано оптимальні індекси для заданого запиту: 
+--Вивести повний список ДТП, на які виїжджали міліціонери із зазначеним званням за вказаний період часу, з повними відомостями про ДТП:
+SELECT A.ID_Accident, A.Date, A.Time, A.Location, A.Victim_Count, A.Accident_Type, A.Investigation_Status,
+       Po.LastName AS Policeman_LastName, Po.FirstName AS Policeman_FirstName, Po.MiddleName AS Policeman_MiddleName,
+       Po.Rank AS Policeman_Rank
+FROM Accident A
+JOIN Policeman Po ON A.ID_Accident = Po.ID_Accident
+WHERE Po.Rank = 'Lieutenant' AND A.Date BETWEEN '2022-01-01' AND '2024-01-01'
+ORDER BY A.Date DESC;
+Database Engine Tuning Advisor (DETA) — це вбудований у SQL Server інструмент для автоматичної оптимізації структури бази даних під задане робоче навантаження.
+ 
+ 
+ 
+Рисунок 29-31 – виконання завдання 15
+
+ Мета аналізу
+Аналіз робочого навантаження бази даних для виявлення оптимальних індексів, що покращать продуктивність запитів до таблиць Accident, Culprit та Accident_Investigation.
+Рекомендації щодо індексів
+Для таблиці Accident:
+•	CREATE NONCLUSTERED INDEX IX_Accident_Date ON Accident (Date)
+•	CREATE NONCLUSTERED INDEX IX_Accident_Status ON Accident (Investigation_Status) INCLUDE (Date, Location)
+Для таблиці Culprit:
+•	CREATE NONCLUSTERED INDEX IX_Culprit_Accident_Type ON Culprit (ID_Accident, Type)
+Для таблиці Accident_Investigation:
+•	CREATE NONCLUSTERED INDEX IX_AccidentInvestigation_ID ON Accident_Investigation (ID_Accident)
+4. Висновки
+Запропоновані індекси дозволять:
+•	Прискорити операції фільтрації за датою в таблиці Accident
+•	Оптимізувати пошук зв'язків між таблицями
+•	Покращити продуктивність операцій INSERT/DELETE
+
+Виконання завдання 16: 
+У цьому завданні проводжу аудит усіх індексів у базі даних: визначаю кількість, тип, унікальність та фрагментацію кожного та створюю звіт у табличній формі.
+Запит для проведення аудиту індексів в базі даних виглядає наступним чином:
+SELECT
+    DB_NAME() AS [База_даних],
+    OBJECT_NAME(i.[object_id]) AS [Таблиця],
+    i.name AS [Індекс],
+    i.type_desc AS [Тип_індексу],
+    i.is_unique AS [Унікальний],
+    ps.avg_fragmentation_in_percent AS [Фрагментація_у_%],
+    ps.page_count AS [Кількість_сторінок]
+FROM
+    sys.indexes AS i
+INNER JOIN
+    sys.dm_db_index_physical_stats(DB_ID(), NULL, NULL, NULL, 'LIMITED') AS ps
+    ON i.[object_id] = ps.[object_id] AND i.index_id = ps.index_id
+WHERE
+    i.type > 0 AND i.is_hypothetical = 0
+ORDER BY
+    ps.avg_fragmentation_in_percent DESC;
+
+ 
+Рисунок 32 – виконання завдання 16
+
+Пояснення запиту:
+•	DB_NAME() — повертає ім’я поточної бази даних.
+•	OBJECT_NAME(i.[object_id]) — повертає ім’я таблиці, до якої належить індекс.
+•	i.name — ім’я індексу.
+•	i.type_desc — тип індексу (наприклад, CLUSTERED, NONCLUSTERED).
+•	i.is_unique — визначає, чи є індекс унікальним (1 — унікальний, 0 — не унікальний).
+•	ps.avg_fragmentation_in_percent — рівень фрагментації індексу, який показує, наскільки ефективно використовується індекс.
+•	ps.page_count — кількість сторінок, які використовує індекс.
+Аналіз індексів:
+•	Типи індексів:
+o	CLUSTERED: Визначають фізичний порядок збереження рядків і забезпечують унікальність (зазвичай для основного ключа).
+o	NONCLUSTERED: Прискорюють пошук без зміни фізичного порядку рядків.
+•	Унікальність:
+o	CLUSTERED індекси завжди унікальні.
+o	NONCLUSTERED можуть бути як унікальними, так і неунікальними.
+•	Фрагментація:
+o	Високий рівень фрагментації може потребувати реорганізації або перебудови індексів. У більшості випадків фрагментація 0, що свідчить про ефективну організацію індексів.
+•	Кількість сторінок:
+o	Невелика кількість сторінок свідчить про малий розмір таблиці або індексу.
 
 Висновки: 
-У ході виконання роботи я досягла поставленої мети: ознайомилася з концепцією функцій у MSSQL, зокрема скалярних та віконних функцій, та їх застосування у практичних запитах. Робота передбачає вивчення можливостей скалярних функцій для обробки та трансформації даних у базах даних.
+У ході виконання роботи я ознайомилася з основними поняттями індексів у системі керування базами даних Microsoft SQL Server. Вивчила їх важливу роль у підвищенні продуктивності запитів, а також розглянула різні типи індексів, їх призначення та особливості використання. Я засвоїла основні оператори для створення індексів, порядок їх застосування, а також методи реорганізації та видалення індексів у базі даних.
+Практична частина роботи дозволила набути навичок створення, оптимізації та аналізу ефективності індексів. Я проаналізувала їх вплив на продуктивність запитів і нав learned, як правильно обирати тип індексів та методи їх обслуговування для досягнення найкращих результатів. Отримані знання і навички є важливими для подальшої роботи з базами даних і їх оптимізації.
+
+Посилання на конспект:
+https://drive.google.com/drive/folders/17AMroeri1iauaJBrmbK7aVMbIPCUe0uK
