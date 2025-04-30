@@ -1,7 +1,7 @@
-                                                 Лабораторна робота 4
-          	на тему: «Вивчення DML на прикладі створення функцій для роботи з БД.»
+                                                 Лабораторна робота 5
+          			на тему: «Робота з індексами та процедурами в MSSQL.»
                                  
-Мета роботи: Метою даної роботи є ознайомлення з концепцією функцій у MSSQL, зокрема скалярних та віконних функцій, та їх застосування у практичних запитах. Робота передбачає вивчення можливостей скалярних функцій для обробки та трансформації даних у базах даних..
+Мета роботи: Ознайомитися з поняттям індексів у системі керування базами даних Microsoft SQL Server, вивчити їх призначення, особливості використання та вплив на продуктивність запитів. Засвоїти оператори створення індексів, порядок їх застосування, а також методи реорганізації та видалення. Набути практичних навичок роботи з індексами шляхом створення, оптимізації та аналізу їх ефективності у базі даних.
 
                                              Варіант №20 (ДАІ)
 База даних повинна містити інформацію про дорожньо-транспортні
@@ -27,503 +27,547 @@
 ![image](https://github.com/user-attachments/assets/96d46b57-0b9a-4983-97ca-c6d99bad622c)
 
 
-Завдання 3. Скалярний тип функцій
 
-Функції:
--- 1. Власна функція для формування П.І.Б. водія
-CREATE FUNCTION dbo.GetDriverFullName
-(
-    @LastName VARCHAR(50),
-    @FirstName VARCHAR(50),
-    @MiddleName VARCHAR(50)
-)
-RETURNS VARCHAR(100)
-AS
-BEGIN
-    RETURN @LastName + ' ' + LEFT(@FirstName, 1) + '.' + LEFT(@MiddleName, 1) + '.'
-END;
+Завдання 3. 
 
---2. Власна функція для перевірки прострочення водійського посвідчення
-CREATE FUNCTION dbo.CheckLicenseStatus
-(
-    @ExpiryDate DATE
-)
-RETURNS VARCHAR(20)
-AS
-BEGIN
-    IF @ExpiryDate < GETDATE()
-        RETURN 'Expired';
-    RETURN 'True';
-END;
+За умовами завдання я додала всі необхідні індекси: некластеризовані, унікальний, індекс з включеними стовпцями та фільтрований індекс. Окрему команду CREATE CLUSTERED INDEX я не використовувала, оскільки в моїх таблицях кластеризовані індекси автоматично створюються для полів із первинним ключем (PRIMARY KEY). Таким чином, вимога щодо наявності кластеризованого індексу також виконана.
+Лістинг створення індексів :
+-- Індекс для швидкого пошуку аварій за датою
+CREATE NONCLUSTERED INDEX idx_Accident_Date ON Accident (Date);
 
--- 3. Власна функція для класифікації рівня травмування
-CREATE FUNCTION dbo.ClassifyInjurySeverity
-(
-    @Severity VARCHAR(20)
-)
-RETURNS VARCHAR(20)
-AS
-BEGIN
-    DECLARE @Result VARCHAR(20);
+-- Індекс для пошуку аварій за місцем
+CREATE NONCLUSTERED INDEX idx_Accident_Location ON Accident (Location);
 
-	-- Перетворюємо Severity на верхній регістр для уніфікації
-    SET @Severity = UPPER(@Severity);
+-- Комбінований індекс для Driver_Involvement
+CREATE NONCLUSTERED INDEX idx_DriverInvolvement_Combined
+ON Driver_Involvement (ID_Accident, ID_Driver);
 
-    SET @Result = 
-        CASE 
-            WHEN @Severity IN ('Mild', 'Light') THEN 'Mild'
-            WHEN @Severity IN ('Moderate', 'Medium') THEN 'Moderate'
-            WHEN @Severity IN ('Severe', 'Critical', 'Heavy') THEN 'Severe'
-            ELSE 'Unknown'
-        END;
-    RETURN @Result;
-END;
-Запити
+-- Унікальний індекс по номеру авто
+CREATE UNIQUE NONCLUSTERED INDEX idx_Vehicle_License_Plate ON Vehicle (License_Plate);
 
--- 1. Власна функція для формування П.І.Б. водія
+-- Індекс для прив’язки авто до аварій
+CREATE NONCLUSTERED INDEX idx_Vehicle_Accident ON Vehicle (ID_Accident);
+
+-- Пошук водіїв за прізвищем
+CREATE NONCLUSTERED INDEX idx_Driver_LastName ON Driver (LastName);
+
+-- Комбінований індекс для поліцейських:
+-- фільтрація за званням, аварією, з включенням ПІБ
+CREATE NONCLUSTERED INDEX idx_Policeman_Combined
+ON Policeman (Rank, ID_Accident)
+INCLUDE (LastName, FirstName);
+
+-- Індекс лише по жертвах з тяжкими травмами
+CREATE NONCLUSTERED INDEX idx_Victim_Severe_Injury
+ON Victim (Severity)
+WHERE Severity = 'Severe';
+
+-- Пошук жертв за аварією
+CREATE NONCLUSTERED INDEX idx_Victim_Accident ON Victim (ID_Accident);
+
+-- Пошук пішоходів за прізвищем
+CREATE NONCLUSTERED INDEX idx_Pedestrian_LastName ON Pedestrian (LastName);
+
+-- Комбінований індекс: чи був пішохід жертвою + аварія
+CREATE NONCLUSTERED INDEX idx_Pedestrian_IsVictim_Accident 
+ON Pedestrian(Is_Victim, ID_Accident);
+
+-- Індекси для зв'язку винуватців з аваріями
+CREATE NONCLUSTERED INDEX idx_Culprit_Accident ON Culprit (ID_Accident);
+CREATE NONCLUSTERED INDEX idx_Culprit_Related ON Culprit (ID_Related);
+
+Пояснення до лістингу створення індексів:
+1.	Некластеризовані індекси:
+o	Некластеризовані індекси створюються для полів, за якими часто виконуються пошуки або з'єднання. Вони дозволяють пришвидшити операції вибірки даних, не змінюючи фізичного порядку рядків у таблиці. Вони утримують посилання на дані в таблиці у вигляді окремої структури, що дозволяє швидко знаходити записи.
+o	Наприклад, для таблиці Accident створюється некластеризований індекс на полі Date, що дозволяє ефективно знаходити записи за датою аварії
+2.	Унікальний індекс:
+o	Унікальний індекс гарантує, що значення в індексованому полі будуть унікальними для кожного запису таблиці. Це корисно для полів, таких як License_Plate в таблиці Vehicle, де кожен номерний знак повинен бути унікальним.
+3.	Індекс з включеними стовпцями:
+o	Індекс з включеними стовпцями дозволяє додавати стовпці в індекс, що покращує продуктивність вибірок, оскільки ці стовпці не потребують додаткових запитів до таблиці. В даному випадку, для таблиці Policeman, створено індекс на поле ID_Accident, і додано стовпці LastName та FirstName для прискорення запитів, що потребують цих даних.
+4.	Фільтрований індекс:
+o	Фільтрований індекс створюється для вибірки певної підмножини даних, що задовольняє умову вказану в операторі WHERE. Це допомагає покращити продуктивність, коли індекс використовується тільки для частини таблиці, що відповідає певному критерію. В даному випадку, для таблиці Victim, створено фільтрований індекс для постраждалих з важкими травмами.
+5.	Некластеризовані індекси для зв'язків:
+o	Створено індекси для полів, що використовуються в зв'язках між таблицями, наприклад, ID_Accident в таблицях Driver_Involvement, Vehicle, Policeman, Victim, Pedestrian та Culprit. Ці індекси допомагають прискорити з'єднання таблиць за відповідними полями.
+6.	Загальний висновок:
+o	Усі ці індекси підвищують продуктивність запитів до бази даних, особливо коли потрібно здійснювати пошук або фільтрацію за конкретними полями. Вибір типу індексу (некластеризованого, унікального, з включеними стовпцями або фільтрованого) залежить від специфічних вимог щодо швидкості доступу до даних та типу операцій, що виконуються на таблицях.
+Цей набір індексів допомагає покращити ефективність запитів до бази даних, особливо коли працюю з великими обсягами даних, забезпечуючи швидкий доступ до важливих полів, які часто використовуються для пошуку, фільтрації та з'єднань.
+ 
+Використовую запити з мого варіанта завдання:
+
+ -- Увімкнути вимір часу виконання
+SET STATISTICS TIME ON;
+--Вивести повний список ДТП, на які виїжджали міліціонери із зазначеним званням за вказаний період часу, з повними відомостями про ДТП:
+SELECT A.ID_Accident, A.Date, A.Time, A.Location, A.Victim_Count, A.Accident_Type, A.Investigation_Status,
+       Po.LastName AS Policeman_LastName, Po.FirstName AS Policeman_FirstName, Po.MiddleName AS Policeman_MiddleName,
+       Po.Rank AS Policeman_Rank
+FROM Accident A
+JOIN Policeman Po ON A.ID_Accident = Po.ID_Accident
+WHERE Po.Rank = 'Lieutenant' AND A.Date BETWEEN '2022-01-01' AND '2024-01-01'
+ORDER BY A.Date DESC;
+
+--Скласти список водіїв, які брали участь більше ніж в одній ДТП за зазначений період часу, з повними відомостями про цих водіїв:
+SELECT D.LastName, D.FirstName, D.MiddleName, D.Address, D.License_Number, D.License_Expiry, D.Phone
+FROM Driver D
+JOIN Driver_Involvement DI ON D.ID_Driver = DI.ID_Driver
+JOIN Accident A ON DI.ID_Accident = A.ID_Accident
+WHERE A.Date BETWEEN '2022-01-01' AND '2024-01-01'
+GROUP BY D.ID_Driver, D.LastName, D.FirstName, D.MiddleName, D.Address, D.License_Number, D.License_Expiry, D.Phone
+HAVING COUNT(DI.ID_Accident) > 1
+ORDER BY D.LastName, D.FirstName;
+
+--	Скласти список постраждалих у ДТП за вказаний період часу з повними відомостями про ці ДТП, упорядковані за кількістю травм певного виду.
 SELECT 
-    dbo.GetDriverFullName(LastName, FirstName, MiddleName) AS FullName,
-    License_Number
-FROM Driver;
-
---2. Власна функція для перевірки прострочення водійського посвідчення
-SELECT 
-    LastName,
-    FirstName,
-    License_Number,
-    dbo.CheckLicenseStatus(License_Expiry) AS License_Status
-FROM Driver;
-
---3. Власна функція для класифікації рівня травмування
-SELECT 
-    LastName,
-    FirstName,
-    Injury_Type,
-    dbo.ClassifyInjurySeverity(Severity) AS Severity_Level
-FROM Victim;
-
-Пояснення:
-
-Власна функція для формування П.І.Б. водія:
-
-•	Функція: dbo.GetDriverFullName приймає три параметри: Прізвище, Ім'я та По батькові. Вона повертає сформовану строку у вигляді "Прізвище І. П." (LEFT(): для отримання першої літери імені та по батькові.).
-•	Запит: Для кожного водія з таблиці Driver виводиться його повне ім'я за допомогою цієї функції.
-
-Власна функція для перевірки прострочення водійського посвідчення:
-
-•	Функція: dbo.CheckLicenseStatus приймає дату закінчення терміну дії посвідчення і порівнює її з поточною датою за допомогою вбудованої функції GETDATE(). Якщо посвідчення прострочене, функція повертає 'Expired', інакше — 'True'.
-•	Запит: Для кожного водія з таблиці Driver виводиться його статус посвідчення.
-
-Власна функція для класифікації рівня травмування:
-
-•	Функція: dbo.ClassifyInjurySeverity приймає рівень травмування (стрічка) і класифікує його на три категорії: "Mild" (легкий), "Moderate" (середній), "Severe" (важкий). Якщо значення не підходить під жодну з категорій, повертається 'Unknown' (UPPER(): для перетворення рівня травмування на верхній регістр для уніфікації порівнянь.).
-•	Запит: Для кожної жертви з таблиці Victim виводиться її категорія травмування за допомогою цієї функції.
-
-![image](https://github.com/user-attachments/assets/f0606875-ff0d-4a71-b515-436b0ee88c3c)
-![image](https://github.com/user-attachments/assets/61aff2a4-832b-4e74-a593-f5ef87061774)
-
-
-Завдання 4. Inline тип функцій
-
-Функції:
---1. Власна функція для перевірки статусу ДТП:
-CREATE FUNCTION CheckAccidentStatus (@accident_id INT)
-RETURNS TABLE
-AS
-RETURN
-(
-    SELECT Investigation_Status  
-    FROM [DAI].[dbo].[Accident]  
-    WHERE ID_Accident = @accident_id  
-);
-
---2. Власна функція для виведення імені міліціонера за званням:
-CREATE FUNCTION dbo.GetPolicemanName (@Rank VARCHAR(30), @LastName VARCHAR(50), @FirstName VARCHAR(50))
-RETURNS TABLE
-AS
-RETURN
-(
-    SELECT @Rank + ' ' + @LastName + ' ' + LEFT(@FirstName, 1) + '.' AS PolicemanName
-);
---3. Власна функція для перевірки, чи є водій у списку постраждалих:
-CREATE FUNCTION dbo.IsDriverVictim (@DriverID INT, @AccidentID INT)
-RETURNS TABLE
-AS
-RETURN
-(
-    SELECT CASE 
-                WHEN EXISTS (
-                    SELECT 1 
-                    FROM Victim 
-                    WHERE ID_Accident = @AccidentID AND ID_Victim = @DriverID
-                ) 
-                THEN 1 
-                ELSE 0 
-            END AS IsVictim
-);
-
-Запити:
---1. Власна функція для перевірки статусу ДТП:
-SELECT 
-    ID_Accident, 
-    Accident.Investigation_Status AS Accident_Status
-FROM [DAI].[dbo].[Accident]
-CROSS APPLY dbo.CheckAccidentStatus(ID_Accident);
-
---2. Власна функція для виведення імені міліціонера за званням:
-SELECT 
-    Policeman.ID_Policeman, 
-    Policeman.Rank, 
-    Policeman.LastName, 
-    Policeman.FirstName,
-    Name.PolicemanName
-FROM Policeman
-CROSS APPLY dbo.GetPolicemanName(Policeman.Rank, Policeman.LastName, Policeman.FirstName) AS Name;
-
---3. Власна функція для перевірки, чи є водій у списку постраждалих:
-SELECT 
-    Driver.LastName,
-    Driver.FirstName,
-    DriverVictim.IsVictim
-FROM Driver
-JOIN Driver_Involvement ON Driver.ID_Driver = Driver_Involvement.ID_Driver
-CROSS APPLY dbo.IsDriverVictim(Driver.ID_Driver, Driver_Involvement.ID_Accident) AS DriverVictim
-WHERE Driver_Involvement.ID_Accident = 1;
-
-Пояснення:
-
-Власна функція для перевірки статусу ДТП:
-
-•	Функція: dbo.CheckAccidentStatus приймає параметр @accident_id, який є ідентифікатором ДТП. Функція перевіряє, який статус має конкретне ДТП, зберігаючи його у таблиці Accident. Повертається значення поля Investigation_Status для відповідного ДТП.
-•	Запит: У запиті використовується функція для того, щоб для кожного запису в таблиці Accident вивести відповідний статус розслідування ДТП. Використовується конструкція CROSS APPLY для застосування функції до кожного рядка таблиці Accident.
-
-Власна функція для виведення імені міліціонера за званням:
-
-•	Функція: dbo.GetPolicemanName приймає три параметри: @Rank (звання), @LastName (прізвище) та @FirstName (ім'я). Функція формує повне ім'я міліціонера у форматі "Звання Прізвище І." (де І — це перша буква імені міліціонера).
-•	Запит: Для кожного міліціонера з таблиці Policeman запит виводить повне ім'я у зазначеному форматі, застосовуючи функцію через CROSS APPLY.
-
-Власна функція для перевірки, чи є водій у списку постраждалих:
-
-•	Функція: dbo.IsDriverVictim приймає два параметри: @DriverID (ідентифікатор водія) та @AccidentID (ідентифікатор ДТП). Функція перевіряє наявність водія в таблиці Victim для вказаного ДТП, повертаючи 1, якщо водій є постраждалим, і 0, якщо не є.
-•	Запит: Запит для кожного водія з таблиці Driver, який залучений до конкретного ДТП, виводить інформацію, чи є він постраждалим, використовуючи функцію через CROSS APPLY.
-
-![image](https://github.com/user-attachments/assets/68154241-7e69-42a4-9591-46c248363010)
-
-Завдання 5. Multistate тип функцій
-Функції:
-
---1. Multistate функція для класифікації ДТП за кількістю постраждалих:
-CREATE FUNCTION dbo.ClassifyAccidentByVictimCount
-(
-    @VictimCount INT
-)
-RETURNS TABLE
-AS
-RETURN
-(
-    SELECT CASE
-            WHEN @VictimCount = 0 THEN 'No Victims'
-            WHEN @VictimCount BETWEEN 1 AND 2 THEN 'Minor Accident'
-            WHEN @VictimCount BETWEEN 3 AND 5 THEN 'Moderate Accident'
-            ELSE 'Severe Accident'
-           END AS Severity
-)
---2. Multistate функція для визначення, чи є водій винуватцем (або пішоходом):
-CREATE FUNCTION dbo.IsCulprit
-(
-    @ID_Culprit INT
-)
-RETURNS TABLE
-AS
-RETURN
-(
-    SELECT CASE
-            WHEN Type = 'Driver' THEN 'Driver'
-            WHEN Type = 'Pedestrian' THEN 'Pedestrian'
-            ELSE 'Unknown'
-           END AS CulpritType
-    FROM Culprit
-    WHERE ID_Culprit = @ID_Culprit
-)
-
---3. Multistate функція для визначення найбільш серйозної травми постраждалого:
-CREATE FUNCTION dbo.GetInjuryDate
-(
-    @InjuryType VARCHAR(100)
-)
-RETURNS TABLE
-AS
-RETURN
-(
-    SELECT Hospitalization_Status
-    FROM Victim
-    WHERE Injury_Type = @InjuryType
-    AND Severity = (SELECT MAX(Severity) FROM Victim WHERE Injury_Type = @InjuryType)
-)
-Запити:
-
---1. Multistate функція для класифікації ДТП за кількістю постраждалих:
-SELECT 
-    ID_Accident, 
-    Severity
-FROM Accident
-CROSS APPLY dbo.ClassifyAccidentByVictimCount(Victim_Count);
-
---2. Multistate функція для визначення, чи є водій винуватцем (або пішоходом):
-SELECT 
-    Driver.LastName,
-    Driver.FirstName,
-    CulpritType
-FROM Driver
-JOIN Culprit ON Driver.ID_Driver = Culprit.ID_Related
-CROSS APPLY dbo.IsCulprit(ID_Culprit);
-
---3. Multistate функція для визначення найбільш серйозної травми постраждалого:
-SELECT 
+    v.LastName, v.FirstName, v.MiddleName, v.Address, v.Passport_Number,
+    a.Date, a.Time, a.Location, a.Accident_Type, 
     v.Injury_Type,
-    v.Hospitalization_Status
+    COUNT(v.Injury_Type) OVER (PARTITION BY v.Injury_Type) AS Injury_Count, 
+    COUNT(v.ID_Victim) OVER (PARTITION BY a.ID_Accident) AS Victim_Count
 FROM Victim v
-CROSS APPLY dbo.GetInjuryDate(v.Injury_Type) AS g;
+JOIN Accident a ON v.ID_Accident = a.ID_Accident
+WHERE a.Date BETWEEN '2023-01-01' AND '2023-12-31'
+ORDER BY Injury_Count DESC, Victim_Count DESC;
 
-Пояснення:
+-- Вимкнути вимір часу
+SET STATISTICS TIME OFF;
 
-Власна функція для класифікації ДТП за кількістю постраждалих:
-VictimCount, який є кількістю постраждалих у ДТП. Функція класифікує ДТП залежно від кількості постраждалих, визначаючи ступінь серйозності події. Повертається значення, яке вказує на ступінь серйозності (наприклад, "Minor Accident", "Moderate Accident", "Severe Accident").
-•	Запит: У запиті використовується функція для кожного запису в таблиці Accident, щоб вивести відповідний ступінь серйозності для кожного ДТП. Використовується конструкція CROSS APPLY, щоб застосувати функцію до кожного рядка таблиці Accident.
+ 
+Пояснення результатів:
+ З індексами:
+•	Час виконання (elapsed time) — дуже малий: 4–12 мс.
+•	CPU time — також низький: 0–11 мс.
+•	Обробка відбувається швидко й ефективно, завдяки тому, що SQL Server використовує індекси для прямого доступу до потрібних рядків, без потреби повного перегляду таблиці (тобто, без table scan).
 
-Власна функція для визначення, чи є водій винуватцем або пішоходом:
-
-•	Функція: dbo.IsCulprit приймає параметр @ID_Culprit, який є ідентифікатором винуватця. Функція перевіряє, чи є винуватець водієм чи пішоходом, повертаючи відповідний тип ("Driver" або "Pedestrian").
-•	Запит: Для кожного водія або пішохода з таблиці Culprit, запит виводить інформацію про тип винуватця, використовуючи функцію через CROSS APPLY.
-
-Власна функція для визначення найбільш серйозної травми постраждалого:
-
-•	Функція: dbo.GetInjuryDate приймає параметр @InjuryType, який є типом травми. Функція повертає статус госпіталізації для найбільш серйозної травми постраждалого з цією травмою.
-•	Запит: У запиті для кожного постраждалого з таблиці Victim виводиться тип травми та статус госпіталізації, використовуючи функцію через CROSS APPLY.
-
-![image](https://github.com/user-attachments/assets/ca28c041-c606-44d5-bf65-3f417012e641)
-![image](https://github.com/user-attachments/assets/90968d3c-f1c9-4680-94dd-bb346a272207)
-
-Завдання 6. Запити варіанта ДАІ
-
-Запити
-•	Вивести повний список ДТП, які виникли з вини пішоходів, за вказаний
-період з повними відомостями про них;
-•	Знайти місце, де сталася максимальна кількість ДТП;
-•	Вивести повний список ДТП, на які ВИЇжджали міліціонери із зазначеним
-званням за вказаний період часу, з повними відомостями про ДТП;
-•	Скласти список водіїв, які брали участь більше НІЖ В ОДНІЙ ДТП за
-зазначений період часу, З повними відомостями про цих водіїв;
-•	Скласти список постраждалих у ДТП за вказаний період часу з
-повними відомостями про ці ДТП, упорядковані за кількістю травм певного виду.
-•	Внести відомості про нову ДТП;
-•	Видалити відомості про ДТП, які сталися раніше вказаної дати
-
-Функції:
---1. Вивести повний список ДТП, які виникли з вини пішоходів за вказаний період з повними відомостями про них:
-CREATE FUNCTION dbo.GetAccidentsByPedestrians
-(
-    @StartDate DATE,
-    @EndDate DATE
-)
-RETURNS TABLE
-AS
-RETURN 
-(
-    SELECT 
-        A.ID_Accident,
-        A.Date,
-        A.Location,
-        A.Victim_Count,
-        A.Accident_Type,
-        C.Type AS CulpritType
-    FROM Accident A
-    JOIN Culprit C ON A.ID_Accident = C.ID_Accident
-    WHERE A.Date BETWEEN @StartDate AND @EndDate
-    AND C.Type = 'Pedestrian'
-);
-
---2. Знайти місце, де сталася максимальна кількість ДТП:
-CREATE FUNCTION dbo.GetMaxAccidentLocation()
-RETURNS VARCHAR(100)
-AS
-BEGIN
-    RETURN (
-        SELECT TOP 1 Location
-        FROM Accident
-        GROUP BY Location
-        ORDER BY COUNT(ID_Accident) DESC
-    );
-END;
-
---3. Вивести повний список ДТП, на які виїжджали міліціонери із зазначеним званням за вказаний період часу, з повними відомостями про ДТП:
-CREATE FUNCTION dbo.GetAccidentsWithPoliceInvolvement
-(
-    @StartDate DATE,
-    @EndDate DATE,
-    @Rank VARCHAR(50)
-)
-RETURNS TABLE
-AS
-RETURN 
-(
-    SELECT 
-        A.ID_Accident,
-        A.Date,
-        A.Location,
-        A.Victim_Count,
-        A.Accident_Type,
-        P.Rank AS PoliceRank
-    FROM Accident A
-    JOIN Policeman P ON A.ID_Accident = P.ID_Accident
-    WHERE A.Date BETWEEN @StartDate AND @EndDate
-    AND P.Rank = @Rank
-);
-
---4. Скласти список водіїв, які брали участь більше ніж в одній ДТП за зазначений період часу з повними відомостями про цих водіїв:
-CREATE FUNCTION dbo.GetDriversWithMultipleAccidents
-(
-    @StartDate DATE,
-    @EndDate DATE
-)
-RETURNS TABLE
-AS
-RETURN 
-(
-    SELECT 
-        D.LastName,
-        D.FirstName,
-        COUNT(DISTINCT DI.ID_Accident) AS AccidentCount
-    FROM Driver D
-    JOIN Driver_Involvement DI ON D.ID_Driver = DI.ID_Driver
-    JOIN Accident A ON DI.ID_Accident = A.ID_Accident
-    WHERE A.Date BETWEEN @StartDate AND @EndDate
-    GROUP BY D.LastName, D.FirstName
-    HAVING COUNT(DISTINCT DI.ID_Accident) > 1
-);
-
---5. Скласти список постраждалих у ДТП за вказаний період часу з повними відомостями про ці ДТП, упорядковані за кількістю травм певного виду:
-CREATE FUNCTION dbo.GetAccidentVictimsByInjuryType
-(
-    @StartDate DATE,
-    @EndDate DATE
-)
-RETURNS TABLE
-AS
-RETURN 
-(
-    SELECT 
-        A.ID_Accident,
-        A.Date,
-        A.Location,
-        V.FirstName + ' ' + V.LastName AS VictimName,  -- Поєднання імені та прізвища
-        V.Injury_Type,  -- Тип травми
-        V.Severity  -- Ступінь важкості травми
-    FROM Accident A
-    JOIN Victim V ON A.ID_Accident = V.ID_Accident
-    WHERE A.Date BETWEEN @StartDate AND @EndDate
-);
-
---6 Внести відомості про нову ДТП;
-CREATE PROCEDURE dbo.InsertAccident
-(
-    @Date DATE,
-    @Location VARCHAR(100),
-    @Victim_Count INT,
-    @Accident_Type VARCHAR(50),
-    @Investigation_Status VARCHAR(50) = NULL,  
-    @Time DATETIME = NULL                     
-)
-AS
-BEGIN
-    -- Якщо час не переданий, використовуємо поточний час
-    IF @Time IS NULL
-    BEGIN
-        SET @Time = GETDATE();
-    END
-
-    -- Вставляємо новий запис у таблицю Accident
-    INSERT INTO Accident (Date, Time, Location, Victim_Count, Accident_Type, Investigation_Status)
-    VALUES (@Date, @Time, @Location, @Victim_Count, @Accident_Type, @Investigation_Status);
-END;
-
--- 7. Видалити відомості про ДТП, які сталися раніше вказаної дати:
-
-CREATE PROCEDURE dbo.DeleteAccidentsBeforeDate
-(
-    @Date DATE
-)
-AS
-BEGIN
-    -- Спочатку видаляємо залежні записи з таблиці Vehicle
-    DELETE FROM Vehicle
-    WHERE ID_Accident IN (SELECT ID_Accident FROM Accident WHERE Date < @Date);
-
-    -- Потім видаляємо залежні записи з таблиці Driver_Involvement
-    DELETE FROM Driver_Involvement
-    WHERE ID_Accident IN (SELECT ID_Accident FROM Accident WHERE Date < @Date);
-
-    -- Тепер видаляємо записи з таблиці Accident
-    DELETE FROM Accident
-    WHERE Date < @Date;
-END;
+Без індексів:
+•	Час виконання (elapsed time) — значно вищий: від 173 мс до 545 мс, що у десятки разів більше.
+•	CPU time — хоч і залишається низьким, однак це пов'язано з тим, що система більше чекає (наприклад, на читання з диска), ніж інтенсивно обробляє.
+•	Відбувається повне сканування таблиць, тобто SQL Server змушений перевірити всі рядки в таблиці, щоб знайти потрібні, що значно уповільнює запити.
+Індекси суттєво прискорюють виконання запитів, особливо коли йдеться про фільтрацію, пошук або з’єднання таблиць за певними полями. Вони дозволяють уникнути повного сканування таблиць і забезпечують значне зменшення часу відповіді.
+Показник	З індексами	Без індексів
+Elapsed time	4–12 мс	173–545 мс
+CPU time	0–11 мс	0 мс
+Кількість оброблених рядків	1–18	1–18
+Тип доступу	Індексований пошук	Повне сканування
+Продуктивність	Висока Низька	Низька
+Таблиця 1 -  з використанням й без використання індексів;
+Завдання 4. 
+В цьому завданні я заповнюю таблиці по 500, 1000, 10 000 рядків, та аналізую 3 запити зі свого варіанту відповідно з використанням індексів які були створені в попередньому завданні 3.
+Результат аналізу 500 рядків:
 Запити:
 
--- 1. Вивести повний список ДТП, які виникли з вини пішоходів за вказаний період з повними відомостями про них:
-SELECT * 
-FROM dbo.GetAccidentsByPedestrians('2020-01-01', '2025-04-01');
+-- Початок вимірювання часу
+SET STATISTICS TIME ON;
 
--- 2. Знайти місце, де сталася максимальна кількість ДТП:
-SELECT dbo.GetMaxAccidentLocation() AS MaxAccidentLocation;
+-- Вивести повний список ДТП, які виникли з вини пішоходів, за вказаний період з повними відомостями про них
+SELECT A.ID_Accident, A.Date, A.Time, A.Location, A.Victim_Count, A.Accident_Type, A.Investigation_Status,
+       P.LastName AS Pedestrian_LastName, P.FirstName AS Pedestrian_FirstName, P.MiddleName AS Pedestrian_MiddleName,
+       P.Address AS Pedestrian_Address, P.Passport_Number AS Pedestrian_Passport
+FROM Accident A
+JOIN Pedestrian P ON A.ID_Accident = P.ID_Accident
+WHERE P.Is_Victim = 1 AND A.Date BETWEEN '2022-01-01' AND '2024-01-01'
+ORDER BY A.Date DESC;
 
--- 3. Вивести повний список ДТП, на які виїжджали міліціонери із зазначеним званням за вказаний період часу, з повними відомостями про ДТП:
-SELECT * 
-FROM dbo.GetAccidentsWithPoliceInvolvement('2020-01-01', '2025-04-01', 'Captain');
+-- Знайти місце, де сталася максимальна кількість ДТП
+SELECT Location, COUNT(*) AS Accident_Count
+FROM Accident
+GROUP BY Location
+ORDER BY Accident_Count DESC;
 
--- 4. Скласти список водіїв, які брали участь більше ніж в одній ДТП за зазначений період часу з повними відомостями про цих водіїв:
-SELECT * 
-FROM dbo.GetDriversWithMultipleAccidents('2020-01-01', '2025-04-01');
+-- Вивести повний список ДТП, на які виїжджали міліціонери із зазначеним званням за вказаний період часу
+SELECT A.ID_Accident, A.Date, A.Time, A.Location, A.Victim_Count, A.Accident_Type, A.Investigation_Status,
+       Po.LastName AS Policeman_LastName, Po.FirstName AS Policeman_FirstName, Po.MiddleName AS Policeman_MiddleName,
+       Po.Rank AS Policeman_Rank
+FROM Accident A
+JOIN Policeman Po ON A.ID_Accident = Po.ID_Accident
+WHERE Po.Rank = 'Lieutenant' AND A.Date BETWEEN '2022-01-01' AND '2024-01-01'
+ORDER BY A.Date DESC;
 
--- 5. Скласти список постраждалих у ДТП за вказаний період часу з повними відомостями про ці ДТП, упорядковані за кількістю травм певного виду:
-SELECT * 
-FROM dbo.GetAccidentVictimsByInjuryType('2020-01-01', '2025-04-01')
-ORDER BY Injury_Type, Severity DESC;
+-- Вимкнути вимір часу
+SET STATISTICS TIME OFF;
 
--- 6. Внести відомості про нову ДТП:
-INSERT INTO Accident (Date, Time, Location, Victim_Count, Accident_Type, Investigation_Status)
-VALUES ('2025-04-01', GETDATE(), 'Kyiv, Khreshchatyk St.', 3, 'Collision', 'Open');
 
+Зведена таблиця результатів:
+
+Після виконання запитів отримала статистику часу для кожного з них. Ось як виглядає зведена таблиця результатів:
+SQL Server parse and compile time
+Запит №	Кількість рядків	CPU час (мс)	Elapsed час (мс)
+Запит 1.2.3	500	19	63
+Запит 1.2.3	1000	17	64
+Запит 1.2.3	10000	67	108
+Таблиця 2 -  Зведена таблиця результатів;
+
+ Аналіз типів індексів та їх використання в залежності від кількості рядків:
+Індекси в базах даних відіграють важливу роль у швидкості виконання запитів, особливо при зростанні обсягу даних. У випадку з таблицями з різною кількістю рядків, вплив індексів на швидкість виконання запитів змінюється.
+•	Малий обсяг даних (500 рядків): Для таблиць з малим обсягом даних індекси не дають великого покращення, оскільки доступ до даних все одно досить швидкий, і навіть без індексів система здатна швидко знаходити потрібні рядки. У таких випадках ефект від індексів мінімальний.
+•	Середній обсяг даних (1000 рядків): При збільшенні кількості рядків до 1000, індекси вже починають мати помітний вплив на швидкість виконання запитів. Інтеграція індексів дозволяє значно зменшити час пошуку за певними критеріями (наприклад, за датою, місцем чи поліцейським).
+•	Великий обсяг даних (10000 рядків): У таблицях з великим обсягом даних індекси набувають вирішального значення для ефективного виконання запитів. Вони значно зменшують час доступу до даних, зокрема, при виконанні запитів на фільтрацію та сортування.
+Типи індексів:
+1.	НЕкластеризовані індекси — це індекси, які особливо корисні для пошуку та фільтрації даних за певними стовпцями (наприклад, індекс на стовпці Date в таблиці Accident, індекс на LastName в таблиці Driver). Вони дозволяють швидко знаходити записи за значеннями в цих стовпцях.
+2.	Комбіновані індекси — індекси, які містять декілька стовпців, дозволяють обробляти запити з кількома умовами. Наприклад, індекс idx_Policeman_Combined для пошуку поліцейських за званням та аварією.
+
+
+Індекси, які використовуються в моїх запитах:
+1.	Запит 1: Виведення повного списку ДТП, які виникли з вини пішоходів, за вказаний період з повними відомостями про них
+Індекс на таблиці Accident:
+	idx_Accident_Date — для швидкого пошуку ДТП за датою (A.Date BETWEEN '2022-01-01' AND '2024-01-01').
+	idx_Accident_Location — для оптимізації пошуку за місцем аварії, хоча цей індекс не використовується безпосередньо у фільтрації, але може допомогти при пошуку аварій за місцем.
+Індекс на таблиці Pedestrian:
+	idx_Pedestrian_IsVictim_Accident — для пошуку пішоходів, які є жертвами в аварії (P.Is_Victim = 1 AND A.Date BETWEEN '2022-01-01' AND '2024-01-01').
+2.	Запит 2: Знайти місце, де сталася максимальна кількість ДТП
+Індекс на таблиці Accident:
+	idx_Accident_Location — для групування та пошуку за місцем (GROUP BY Location).
+3.	Запит 3: Вивести повний список ДТП, на які виїжджали міліціонери із зазначеним званням за вказаний період часу
+Індекс на таблиці Accident:
+	idx_Accident_Date — для швидкого пошуку ДТП за датою.
+Індекс на таблиці Policeman:
+	idx_Policeman_Combined — комбінований індекс для поліцейських із фільтрацією за званням та аварією (Po.Rank = 'Lieutenant' AND A.Date BETWEEN '2022-01-01' AND '2024-01-01').
+Аналіз використання індексів:
+•	idx_Accident_Date використовується для оптимізації пошуку по даті ДТП у всіх запитах, де присутній фільтр по даті.
+•	idx_Accident_Location присутній в запиті на пошук місця аварії, щоб швидше здійснювати групування за місцем аварії.
+•	idx_Pedestrian_IsVictim_Accident допомагає швидше знаходити пішоходів, які є жертвами, в першому запиті.
+•	idx_Policeman_Combined оптимізує пошук поліцейських за званням і аварією в запиті, де необхідно витягнути поліцейських із зазначеним званням.
+Чим більша таблиця, тим більший вплив індекси мають на швидкість виконання запитів. У великих таблицях індекси можуть знижувати час виконання запитів на кілька порядків, забезпечуючи швидкий доступ до необхідних даних, особливо при виконанні складних запитів із кількома фільтрами.
+
+Завдання 5. 
+
+У цьому завданні я провела аудит усіх індексів, що використовуються в базі даних. Для цього я використала відповідні SQL-запити, щоб отримати інформацію про всі індекси, їх типи, унікальність, рівень фрагментації та інші характеристики. Результати були зібрані в табличній формі для зручного аналізу.
+Код для отримання інформації про індекси:
+SELECT 
+    ind.name AS Index_Name,
+    ind.type_desc AS Index_Type,
+    ind.is_unique AS Is_Unique,
+    frag.avg_fragmentation_in_percent AS Fragmentation_Level,
+    tab.name AS Table_Name,
+    frag.page_count AS Page_Count
+FROM 
+    sys.indexes ind
+JOIN 
+    sys.tables tab ON ind.object_id = tab.object_id
+JOIN 
+    sys.dm_db_index_physical_stats(NULL, NULL, NULL, NULL, 'DETAILED') frag
+    ON ind.index_id = frag.index_id AND ind.object_id = frag.object_id
+ORDER BY 
+    Table_Name, Index_Name;
+
+Пояснення до коду:
+
+1.	SELECT: У цьому розділі вказуються стовпці, які будуть повернуті у результатах запиту.
+•	ind.name AS Index_Name: Повертає ім'я індексу.
+•	ind.type_desc AS Index_Type: Повертає опис типу індексу (наприклад, кластеризований або некластеризований).
+•	ind.is_unique AS Is_Unique: Повертає значення, яке вказує, чи є індекс унікальним (1 — унікальний, 0 — не унікальний).
+•	frag.avg_fragmentation_in_percent AS Fragmentation_Level: Повертає середній рівень фрагментації індексу у відсотках.
+•	tab.name AS Table_Name: Повертає ім'я таблиці, з якою пов'язаний індекс.
+•	frag.page_count AS Page_Count: Повертає кількість сторінок індексу.
+2.	FROM sys.indexes ind: Це системна таблиця, яка містить інформацію про всі індекси в базі даних. Кожен запис у таблиці відповідає певному індексу.
+3.	JOIN sys.tables tab ON ind.object_id = tab.object_id: Це з'єднання таблиці індексів з таблицею, яка містить інформацію про всі таблиці в базі даних. Для кожного індексу, ми знаходимо таблицю, з якою він асоційований.
+4.	JOIN sys.dm_db_index_physical_stats(NULL, NULL, NULL, NULL, 'DETAILED') frag: Це динамічне управлінське представлення (DMV), яке надає інформацію про фізичний стан індексів, зокрема про рівень фрагментації, кількість сторінок, обсяг і т. д.
+•	Параметри NULL вказують на те, що ми хочемо отримати статистику по всіх індексах у базі даних.
+•	'DETAILED' — рівень деталізації, що дає повну інформацію про індекси.
+5.	ON ind.index_id = frag.index_id AND ind.object_id = frag.object_id: Це умова для з'єднання таблиць, що гарантує, що ми зв'язуємо правильний індекс з його фізичним станом на основі ідентифікаторів індексу та об'єкта.
+6.	ORDER BY Table_Name, Index_Name: Це сортування результатів за іменем таблиці, а потім за іменем індексу. Це дозволяє зручно переглядати індекси по кожній таблиці.
+Результати запиту:
+ 
+ 
+  Найефективніші індекси
+•	IX_Accident_Location_AccidentType — використовується у 98.59% звернень (71 запит).
+•	idx_Policeman_Combined — 98.59%, 71 запит.
+•	idx_Pedestrian_LastName — 97.05%, 34 запити.
+•	idx_Culprit_Accident, idx_Culprit_Related, idx_Pedestrian_IsVictim_Accident — близько 96–97%.
+Високий відсоток використання свідчить, що індекс добре оптимізує запити — вони активно використовують ці поля.
+ Маловикористовувані індекси
+•	Наприклад, idx_Victim_Severe_Injury — лише 27.27% використання.
+•	PK__Victim__... — лише 0.81%, що доволі низько для первинного ключа. Це може свідчити про неефективне використання поля з PK або рідке звернення через нього.
+Ці дані можуть бути корисними для моніторингу продуктивності бази даних та виконання операцій із збереженням і відновленням даних.
+
+Завдання 6 – Системні збережені процедури
+У цьому завданні я використала три вбудовані системні збережені процедури sp_help, sp_databases та sp_who. Ці процедури дозволяють отримувати службову інформацію про базу даних: її структуру, список доступних БД, а також інформацію про поточних користувачів. Вони є корисними при обслуговуванні БД, моніторингу активності та налагодженні.
+Код виконання :
+-- 1. Перевірка структури таблиці Accident
+EXEC sp_help 'dbo.Accident';
+
+-- 2. Перевірка баз даних на сервері
+EXEC sp_databases;
+
+-- 3. Перевірка поточних користувачів/процесів
+EXEC sp_who;
+Специфікація та застосування:
+•	sp_help 'table_name' — показує структуру таблиці, ключі, індекси. Корисно для ревізії БД.
+•	sp_databases — перелік усіх баз даних. Зручно для адміністративних завдань.
+•	sp_who — дозволяє бачити, хто підключений до SQL Server. Використовується для діагностики.
+ 
+
+Завдання 7 – Глобальні тимчасові збережені процедури
+У цьому завданні я створила три глобальні тимчасові збережені процедури. Глобальні процедури доступні з будь-якого підключення до сервера, поки активна хоча б одна сесія, що їх створила. Це зручно для багаторазового використання під час великих робочих сесій або між модулями.
+Код виконання :
+-- Створюємо глобальну тимчасову таблицю для тестових інцидентів
+IF OBJECT_ID('tempdb..##Global_Accidents') IS NOT NULL
+    DROP TABLE ##Global_Accidents;
+GO
+
+CREATE TABLE ##Global_Accidents (
+    Accident_ID INT,
+    Date_Accident DATE,
+    Location NVARCHAR(100)
+);
+GO
+
+-- Процедура 1: Додавання інциденту в глобальну тимчасову таблицю
+IF OBJECT_ID('tempdb..##Insert_Global_Accident', 'P') IS NOT NULL
+    DROP PROCEDURE ##Insert_Global_Accident;
+GO
+
+CREATE PROCEDURE ##Insert_Global_Accident
+    @Accident_ID INT,
+    @Date_Accident DATE,
+    @Location NVARCHAR(100)
+AS
+BEGIN
+    INSERT INTO ##Global_Accidents (Accident_ID, Date_Accident, Location)
+    VALUES (@Accident_ID, @Date_Accident, @Location);
+END;
+GO
+
+-- Процедура 2: Отримання всіх записів з глобальної таблиці
+IF OBJECT_ID('tempdb..##Get_Global_Accidents', 'P') IS NOT NULL
+    DROP PROCEDURE ##Get_Global_Accidents;
+GO
+
+CREATE PROCEDURE ##Get_Global_Accidents
+AS
+BEGIN
+    SELECT * FROM ##Global_Accidents;
+END;
+GO
+
+-- Процедура 3: Очищення глобальної тимчасової таблиці
+IF OBJECT_ID('tempdb..##Clear_Global_Accidents', 'P') IS NOT NULL
+    DROP PROCEDURE ##Clear_Global_Accidents;
+GO
+
+CREATE PROCEDURE ##Clear_Global_Accidents
+AS
+BEGIN
+    DELETE FROM ##Global_Accidents;
+END;
+GO
 Пояснення:
-•	GetAccidentsByPedestrians: Виводить список ДТП, які сталися з вини пішоходів за вказаний період, з повними відомостями (дата, місце, кількість жертв, тип ДТП).
-•	GetMaxAccidentLocation: Повертає місце з найбільшим числом ДТП за весь час.
-•	GetAccidentsWithPoliceInvolvement: Виводить ДТП, у яких брали участь міліціонери із заданим званням в межах вказаного періоду.
-•	GetDriversWithMultipleAccidents: Виводить список водіїв, які брали участь в більше ніж одній ДТП за вказаний період.
-•	GetAccidentVictimsByInjuryType: Показує постраждалих у ДТП за вказаний період з детальними відомостями про тип і важкість травм, впорядкованих за типом травм.
-•	InsertAccident: Додає нову ДТП в базу даних (з можливістю вказати дату, час, місце, кількість жертв та тип ДТП).
-•	DeleteAccidentsBeforeDate: Видаляє всі ДТП та пов'язані з ними записи (автомобілі, водії) до зазначеної дати.
+Я створила глобальну тимчасову таблицю ##Global_Accidents в базі даних tempdb, яка використовується для зберігання інформації про інциденти. Вона містить три стовпці:
+Accident_ID — унікальний ідентифікатор інциденту,
+Date_Accident — дата інциденту,
+Location — місце, де стався інцидент.
+Цю таблицю я використовую для тимчасового зберігання даних, і після завершення сесії ці дані будуть автоматично видалені.
+Процедури:
+##Insert_Global_Accident — ця процедура додає новий запис в таблицю. Вона приймає три параметри: ідентифікатор інциденту, дату та місце інциденту. Це дає змогу зручно додавати інциденти в таблицю, не вводячи кожен запис вручну.
+Приклад використання: EXEC ##Get_Global_Accidents;
+##Get_Global_Accidents — ця процедура отримує всі записи з таблиці. Вона просто виконує команду SELECT, щоб вибрати всі дані з таблиці. Це зручно, коли потрібно переглянути всі додані інциденти.
+Приклад використання: EXEC ##Get_Global_Accidents;
+##Clear_Global_Accidents — ця процедура очищає таблицю від усіх записів, виконуючи команду DELETE. Це корисно, якщо потрібно почистити дані після аналізу або перед новим набором даних.
+Приклад використання: EXEC ##Clear_Global_Accidents;
+ 
 
-![image](https://github.com/user-attachments/assets/c8e243c3-2597-4205-8fe1-6bbd64e83391)
+Завдання 8 – Тимчасові збережені процедури
+У цьому завданні я створила тимчасові збережені процедури (локальні), які існують тільки в рамках поточної сесії. Це зручно для розробки або тестування, коли потрібно тимчасово ізолювати логіку.
+Код виконання :
+-- Тимчасова процедура для вставки водія
+CREATE PROCEDURE #InsertDriver
+    @LastName NVARCHAR(100),
+    @FirstName NVARCHAR(100),
+    @MiddleName NVARCHAR(100),
+    @License_Number NVARCHAR(50),
+    @License_Expiry DATE,
+    @Phone NVARCHAR(20),
+    @Address NVARCHAR(255)
+AS
+BEGIN
+    INSERT INTO dbo.Driver (LastName, FirstName, MiddleName, License_Number, License_Expiry, Phone, Address)
+    VALUES (@LastName, @FirstName, @MiddleName, @License_Number, @License_Expiry, @Phone, @Address);
+END;
+GO
+
+-- Тимчасова процедура для перегляду водіїв
+CREATE PROCEDURE #GetDrivers
+AS
+BEGIN
+    SELECT * FROM dbo.Driver;
+END;
+GO
+
+-- Тимчасова процедура для видалення водія
+CREATE PROCEDURE #DeleteDriver
+    @ID_Driver INT
+AS
+BEGIN
+    DELETE FROM dbo.Driver WHERE ID_Driver = @ID_Driver;
+END;
+GO
+
+У цьому фрагменті коду я створила три локальні тимчасові збережені процедури, які працюють з таблицею dbo.Driver, що містить дані про водіїв. Тимчасові процедури позначаються символом # перед назвою, і вони доступні лише в межах поточної сесії:
+1.	#InsertDriver — процедура для додавання нового водія. Приймає параметри з ПІБ, номером водійського посвідчення, терміном дії, телефоном і адресою. Додає запис у таблицю Driver. Її можна використовувати для швидкого внесення даних під час тестування або демонстрації.
+2.	#GetDrivers — процедура для перегляду всіх водіїв. Виконує запит SELECT * і повертає весь вміст таблиці. Зручно застосовувати для перевірки наявних записів у таблиці.
+3.	#DeleteDriver — процедура для видалення водія за ID. Приймає параметр @ID_Driver і видаляє відповідний запис. Її можна використовувати для очищення таблиці від помилкових або непотрібних записів.
+У моїй базі даних ці процедури корисні для тимчасової обробки даних, які не зберігаються постійно — наприклад, під час відлагодження або демонстрації функціоналу.
+ 
+Виконання процедури #InsertDriver для вставки нового водія:  
 
 
-   Завдання 7. Аналіз продуктивності запитів у MS SQL за допомогою EXPLAIN (Execution Plan).
-   
-![image](https://github.com/user-attachments/assets/d0224925-4fb2-4610-a865-9a6ae8f7453c)
-![image](https://github.com/user-attachments/assets/5ddcf72c-cfc1-499f-9cac-6a011eaad3ab)
-![image](https://github.com/user-attachments/assets/f08f9abe-863a-4fdb-aa49-c602b4368204)
-![image](https://github.com/user-attachments/assets/32488e2f-b81c-47d3-b037-09538c67e8bc)
+Виконання процедури #GetDrivers для перегляду всіх водіїв:
+ 
+ Виконання процедури #DeleteDriver для видалення водія за його ID_Driver:
 
-Аналіз запитів завдання 3:
 
-![image](https://github.com/user-attachments/assets/79177abc-7520-4eb8-a3c1-3a2d779361f7)
+Завдання 9 – Збережені процедури користувачів
+У цьому завданні я створила три користувацькі збережені процедури, що ілюструють використання транзакцій. Це важливо для забезпечення цілісності даних у критичних частинах БД. Я створила збережену процедуру InsertAccidentWithTransaction, яка реалізує додавання нового запису про аварію за допомогою транзакції.
+Код виконання :
+-- Процедура для вставки аварії з транзакцією
+CREATE PROCEDURE InsertAccidentWithTransaction
+    @Location NVARCHAR(100),
+    @Date DATETIME,
+    @Time TIME,
+    @Victim_Count INT,
+    @Accident_Type NVARCHAR(50),
+    @Investigation_Status NVARCHAR(50)
+AS
+BEGIN
+    BEGIN TRANSACTION;  -- Починаємо транзакцію
 
-Аналіз запитів завдання 4:
+    BEGIN TRY
+        -- Вставка нового запису в таблицю Accident
+        INSERT INTO dbo.Accident (Location, Date, Time, Victim_Count, Accident_Type, Investigation_Status)
+        VALUES (@Location, @Date, @Time, @Victim_Count, @Accident_Type, @Investigation_Status);
 
-![image](https://github.com/user-attachments/assets/f780af60-3d9c-4d8c-86eb-12df6bc521d4)
+        COMMIT TRANSACTION;  -- Підтверджуємо зміни
+    END TRY
+    BEGIN CATCH
+        ROLLBACK TRANSACTION;  -- У разі помилки скасовуємо зміни
+        PRINT 'Помилка вставки аварії: ' + ERROR_MESSAGE();  -- Виводимо повідомлення про помилку
+    END CATCH
+END;
+GO
+Пояснення до процедури:
+•	BEGIN TRANSACTION — це початок транзакції. Транзакція дозволяє виконати кілька операцій у базі даних як одну цілісну одиницю. Якщо одна з операцій не вдасться, всі зміни будуть скасовані.
+•	BEGIN TRY — початок блоку для виконання SQL-запитів. Якщо виникає помилка, управління передається до блоку BEGIN CATCH.
+•	COMMIT TRANSACTION — підтверджує транзакцію, тобто всі зміни будуть збережені в базі даних.
+•	ROLLBACK TRANSACTION — скасовує транзакцію, якщо сталася помилка.
+•	ERROR_MESSAGE() — функція, яка повертає текст повідомлення про помилку.
+Специфікація:
+Назва: InsertAccidentWithTransaction
+Параметри:
+•	@Location — місце аварії
+•	@Date — дата події
+•	@Time — час аварії
+•	@Victim_Count — кількість постраждалих
+•	@Accident_Type — тип аварії
+•	@Investigation_Status — статус розслідування
+Призначення: забезпечити надійне додавання даних про аварію до таблиці з контролем помилок через транзакцію.
+Як можна використовувати:
+У моїй базі даних ця процедура дозволяє безпечно вносити дані про нові аварії. Завдяки транзакції зміни не будуть збережені, якщо станеться помилка — це важливо для збереження цілісності даних. Такий підхід особливо корисний у системах, де важливі точність і надійність записів (наприклад, у базі ДАІ).
+ 
+Виклик процедури:
+Після того як збережену процедуру створено, її можна викликати для вставки нової аварії. Ось приклад виклику:
+ 
+Ця процедура вставляє новий запис в таблицю Accident, використовуючи транзакції для забезпечення цілісності даних. Якщо під час вставки виникає помилка, транзакція скасовується, і дані не додаються в таблицю.
 
-Аналіз запитів завдання 5:
+Завдання 10 – Вставка параметризованої кількості рядків
+У цьому завданні я реалізувала процедуру InsertRows, яка приймає параметр – кількість рядків, що потрібно вставити до таблиці. Я використала цикл WHILE, щоб реалізувати багаторазову вставку. Це може використовуватись при масовому завантаженні або тестуванні продуктивності.
+Код виконання :
+CREATE PROCEDURE InsertNAccidents
+    @Count INT
+AS
+BEGIN
+    DECLARE @i INT = 1;
+    WHILE @i <= @Count
+    BEGIN
+        INSERT INTO dbo.Accident (Location, Date, Time, Accident_Type)
+        VALUES (CONCAT('Place ', @i), GETDATE(), CONVERT(TIME, GETDATE()), 'Тип аварії');  -- Вказано значення для Accident_Type
 
-![image](https://github.com/user-attachments/assets/5124aeac-cc94-4db4-a2fc-033ca0488f28)
-![image](https://github.com/user-attachments/assets/bab34d39-0687-4665-a2d4-59b219673e46)
+        SET @i += 1;
+    END
+END;
+GO
+
+EXEC InsertNAccidents @Count = 5;  -- Це вставить 5 аварій
+Я створила збережену процедуру InsertNAccidents, яка дозволяє вставити одразу кілька записів про аварії.
+Специфікація:
+Назва: InsertNAccidents
+Параметри:
+@Count — кількість аварій, які потрібно вставити.
+Призначення: автоматично додати задану кількість аварій у базу даних зі згенерованими значеннями.
+Як можна використовувати:
+Ця процедура корисна для наповнення бази тестовими даними. У моїй базі даних вона дозволяє швидко створити декілька записів про аварії з фіксованим типом та автоматично згенерованим місцем і поточним часом. Це зручно при розробці та перевірці роботи запитів, інтерфейсів або аналітики.
+
+ 
+
+Завдання 11 – Процедура з послідовністю для первинного ключа
+У цьому завданні я створила процедуру, яка вставляє запис у таблицю з генерацією первинного ключа за допомогою SEQUENCE. Це особливо корисно, коли первинний ключ має бути незалежним від автоінкременту, або коли необхідна зовнішня синхронізація ключів.
+Код виконання :
+-- 1. Видалення послідовності, якщо існує
+IF OBJECT_ID('dbo.AccidentSeq', 'SO') IS NOT NULL
+    DROP SEQUENCE dbo.AccidentSeq;
+GO
+
+-- Створення послідовності
+CREATE SEQUENCE dbo.AccidentSeq
+    START WITH 1000
+    INCREMENT BY 1;
+GO
+
+-- 2. Видалення процедури, якщо існує
+IF OBJECT_ID('dbo.InsertAccidentWithSequence', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.InsertAccidentWithSequence;
+GO
+
+-- Створення збереженої процедури
+CREATE PROCEDURE dbo.InsertAccidentWithSequence
+    @Location NVARCHAR(100),
+    @Date DATETIME,
+    @Time TIME,
+    @Victim_Count INT,
+    @Accident_Type NVARCHAR(100),
+    @Investigation_Status NVARCHAR(100),
+    @NewID INT OUTPUT
+AS
+BEGIN
+    DECLARE @NextID INT = NEXT VALUE FOR dbo.AccidentSeq;
+
+    -- Вставка без явного значення для ID_Accident
+    INSERT INTO dbo.Accident (
+        Date, Time, Location, 
+        Victim_Count, Accident_Type, Investigation_Status
+    )
+    VALUES (
+        @Date, @Time, @Location,
+        @Victim_Count, @Accident_Type, @Investigation_Status
+    );
+
+    -- Повертає ID нового запису
+    SET @NewID = SCOPE_IDENTITY();
+END;
+GO
+
+-- 3. Виклик процедури з тестовими даними
+DECLARE @NewAccidentID INT;
+
+EXEC dbo.InsertAccidentWithSequence
+    @Location = 'Kyiv',
+    @Date = '2023-11-15',
+    @Time = '14:30:00',
+    @Victim_Count = 3,
+    @Accident_Type = 'Collision',
+    @Investigation_Status = 'In Progress',
+    @NewID = @NewAccidentID OUTPUT;
+
+-- 4. Display the result
+SELECT 'New Accident ID:' AS Info, @NewAccidentID AS ID;	
+
+
+Виконуючи дане завдання, я створила збережену процедуру, яка дозволяє вставляти нові записи в таблицю Accident, де первинний ключ генерується автоматично за допомогою послідовності.
+Спочатку я створила послідовність AccidentSeq, яка генерує унікальні значення для поля первинного ключа. Далі я реалізувала процедуру InsertAccidentWithSequence, яка приймає всі значення полів, крім самого первинного ключа. Усередині процедури генерується нове значення первинного ключа за допомогою NEXT VALUE FOR, після чого виконується вставка запису в таблицю.
+Після успішної вставки значення нового ключа передається назад через параметр OUTPUT. У разі помилки або якщо вставка не відбулась, процедура поверне null. Це рішення дозволяє гнучко та безпечно додавати нові записи в таблицю, гарантуючи унікальність і цілісність даних.
+Цей підхід є ефективним у тих випадках, коли потрібно зберігати зв’язки між таблицями або одразу після вставки працювати з ID нового запису.
+
 
 Висновки: 
-У ході виконання роботи я досягла поставленої мети: ознайомилася з концепцією функцій у MSSQL, зокрема скалярних та віконних функцій, та їх застосування у практичних запитах. Робота передбачає вивчення можливостей скалярних функцій для обробки та трансформації даних у базах даних.
+В процесі виконання даного завдання я ознайомилася з важливим аспектом роботи з базами даних — індексами у системі керування базами даних Microsoft SQL Server. Під час виконання роботи я вивчила основні аспекти їх призначення, а також механізми, які дозволяють впливати на продуктивність запитів до бази даних. Зокрема, я засвоїла основні оператори для створення індексів, порядок їх застосування, а також методи реорганізації та видалення індексів для підтримки оптимальної ефективності роботи системи.
+Практична частина роботи дозволила мені набути корисного досвіду в створенні та оптимізації індексів у реальних умовах. Я проаналізувала їх вплив на продуктивність запитів і змогла оцінити, як правильно вибирати індекси для досягнення кращих результатів при роботі з великими обсягами даних. Зокрема, це включає розуміння того, як індекси допомагають прискорити пошук даних, а також важливість правильного використання індексів для забезпечення ефективної роботи системи в цілому.
+Загалом, це завдання дало мені глибше розуміння теоретичних та практичних аспектів використання індексів у SQL Server, а також дозволило отримати навички оптимізації бази даних для забезпечення її максимальної продуктивності.
+
+
